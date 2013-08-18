@@ -93,9 +93,8 @@ class Kohana_Password_Manager {
     public function garbage_collector()
     {
         // Delete outdated password recovery links
-        DB::delete('password_recovery_links')
-            ->where('valid_until', '<', date('Y-m-d H:i:s'))
-            ->execute();
+        ORM::factory('Password_Recovery_Link')
+            ->garbage_collector(time());
     }
 
     /**
