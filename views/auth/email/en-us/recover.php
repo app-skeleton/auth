@@ -7,10 +7,10 @@
 <body>
 <p>Hello <?php echo $name; ?>,</p>
 <p>You have requested to reset your password for<br />
-App name at <?php echo URL::base(); ?></p>
+App name at <a href="<?php echo URL::base(); ?>"><?php echo URL::base(); ?></a></p>
 <p>Email:    <?php echo $email; ?></p>
 <p>Copy this link into your browser to reset your password:</p>
-<p><?php echo $url; ?></p>
+<p><a href="<?php echo $url; ?>"><?php echo $url; ?></a></p>
 <p>If you did not request to reset your password, please disregard this email.</p>
 </body>
 </html>
