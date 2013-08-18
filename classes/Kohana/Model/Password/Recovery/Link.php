@@ -18,7 +18,7 @@ class Kohana_Model_Password_Recovery_Link extends ORM {
         'link_id' => array(),
         'secure_key' => array(),
         'email' => array(),
-        'valid_until' => array()
+        'expires_on' => array()
     );
 
     /**
@@ -50,7 +50,7 @@ class Kohana_Model_Password_Recovery_Link extends ORM {
         $config = Kohana::$config->load('auth/recovery');
         $this->secure_key = Text::random('alnum', 32);
         $this->email = $email;
-        $this->valid_until = date('Y-m-d H:i:s', time() + $config['link']['lifetime']);
+        $this->expires_on = date('Y-m-d H:i:s', time() + $config['link']['lifetime']);
         return $this;
     }
 
@@ -75,7 +75,7 @@ class Kohana_Model_Password_Recovery_Link extends ORM {
     {
         $link = ORM::factory('Password_Recovery_Link')
                     ->where('secure_key', '=', $secure_key)
-                    ->and_where('valid_until', '>', date('Y-m-d H:i:s'))
+                    ->and_where('expires_on', '>', date('Y-m-d H:i:s'))
                     ->find();
 
         if ( ! $link->loaded())
