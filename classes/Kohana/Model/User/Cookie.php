@@ -18,7 +18,7 @@ class Kohana_Model_User_Cookie extends ORM {
         'cookie_id' => array(),
         'user_id' => array(),
         'random_key' => array(),
-        'expires' => array()
+        'expires_on' => array()
     );
 
 
