@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS `password_recovery_links` (
   `link_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `secure_key` varchar(32) NOT NULL,
   `email` varchar(128) NOT NULL,
-  `valid_until` datetime NOT NULL,
+  `expires_on` datetime NOT NULL,
   PRIMARY KEY (`link_id`),
   UNIQUE KEY `url` (`secure_key`),
   KEY `FK_password_recovery_links__email` (`email`),
@@ -47,7 +47,8 @@ DROP TABLE IF EXISTS `users`;
 CREATE TABLE IF NOT EXISTS `users` (
   `user_id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
   `first_name` varchar(50) NOT NULL,
-  `last_name` varchar(50) NOT NULL,
+  `last_name` varchar(50) DEFAULT NULL,
+  `timezone` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -60,10 +61,11 @@ CREATE TABLE IF NOT EXISTS `user_cookies` (
   `cookie_id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
   `user_id` mediumint(8) unsigned NOT NULL,
   `random_key` varchar(64) NOT NULL,
-  `valid_until` datetime NOT NULL,
+  `expires_on` datetime NOT NULL,
   PRIMARY KEY (`cookie_id`),
   KEY `random_key` (`random_key`(5)),
   KEY `FK_user_cookies__user_id` (`user_id`),
+  KEY `valid_until` (`expires_on`),
   CONSTRAINT `FK_user_cookies__user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
