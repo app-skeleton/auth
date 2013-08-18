@@ -20,7 +20,7 @@ class Kohana_User {
 	protected $_identity;
 
     // States to load from db
-    protected $_states_to_load = array('first_name', 'last_name');
+    protected $_states_to_load = array('first_name', 'last_name', 'timezone');
 
     // Singleton instance
     protected static $_instance;
