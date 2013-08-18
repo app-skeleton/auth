@@ -74,7 +74,7 @@ class Kohana_User_Cookie {
                 }
 
                 // Check if the cookie is outdated
-                if (strtotime($db_cookie->valid_until) < time())
+                if (strtotime($db_cookie->expires_on) < time())
                 {
                     // Delete the outdated cookie
                     Cookie::delete($cookie_name);
@@ -133,7 +133,7 @@ class Kohana_User_Cookie {
 
         $this->_cookie->user_id = $user_id;
         $this->_cookie->random_key = $random_key;
-        $this->_cookie->valid_until = date('Y-m-d H:i:s', time() + $this->cookie_lifetime($cookie_lifetime));
+        $this->_cookie->expires_on = date('Y-m-d H:i:s', time() + $this->cookie_lifetime($cookie_lifetime));
 
         $this->_cookie->save();
     }
@@ -163,7 +163,7 @@ class Kohana_User_Cookie {
 
             // Save the new cookie to database
             $this->_cookie->random_key = $random_key;
-            $this->_cookie->valid_until = date('Y-m-d H:i:s', time() + $this->cookie_lifetime($cookie_lifetime));
+            $this->_cookie->expires_on = date('Y-m-d H:i:s', time() + $this->cookie_lifetime($cookie_lifetime));
 
             $this->_cookie->save();
         }
