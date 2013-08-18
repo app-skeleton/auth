@@ -16,9 +16,9 @@ class Kohana_User_Manager {
     /**
      * Sign up a new user
      *
-     * @param   array   $values
+     * @param   array $values
      * @throws  User_Validation_Exception
-     * @throws  Kohana_Exception
+     * @throws  Database_Exception|Exception
      * @return  array   An array containing the user and the identity models data as arrays
      */
     public function signup($values)
@@ -69,10 +69,10 @@ class Kohana_User_Manager {
         }            
 
         // Validation passes, save the user, and the identity
-        $db = Database::instance();
-        $db->begin();
+        $user_model->begin();
 
-        try {
+        try
+        {
             $user_model->save();
 
             // Setup identity
@@ -83,16 +83,17 @@ class Kohana_User_Manager {
             $identity_model->save();
 
             // Insert successful, commit the changes
-            $db->commit();
+            $user_model->commit();
 
             return array($user_model->as_array(), $identity_model->as_array());
         }
-        catch (Database_Exception $e)
+        catch (Exception $e)
         {
             // Insert failed, roll back changes
-            $db->rollback();
+            $user_model->rollback();
 
-            throw new Kohana_Exception('Something went wrong. Please try again later.');
+            // Re-throw the exception
+            throw $e;
         }
     }
 
@@ -103,6 +104,7 @@ class Kohana_User_Manager {
      * @param   array   $values
      * @throws  Kohana_Exception
      * @throws  User_Validation_Exception
+     * @throws  Exception
      * @return  array   An array containing the user and the identity models data as arrays
      */
     public function update($user_id, $values)
@@ -182,8 +184,7 @@ class Kohana_User_Manager {
         }
 
         // Validation passes, save the user, and the identity
-        $db = Database::instance();
-        $db->begin();
+        $user_model->begin();
 
         try
         {
@@ -191,36 +192,43 @@ class Kohana_User_Manager {
             $identity_model->save();
 
             // Update successful, commit the changes
-            $db->commit();
+            $user_model->commit();
 
             return array($user_model->as_array(), $identity_model->as_array());
         }
-        catch (Database_Exception $e)
+        catch (Exception $e)
         {
             // Update failed, roll back changes
-            $db->rollback();
+            $user_model->rollback();
 
-            throw new Kohana_Exception('Something went wrong. Please try again later.');
+            // Re-throw the exception
+            throw $e;
         }
     }
 
     /**
      * Get user data
      *
-     * @param   mixed   $find_by_value
-     * @param   array   $fields
-     * @param   string  $find_by_field
-     * @return  mixed
+     * @param   int     $user_id
+     * @param   array   $columns
+     * @return  array
      */
-    public function get_data($find_by_value, $fields = array('*'), $find_by_field = 'users.user_id')
+    public function get_user_data($user_id, $columns = NULL)
     {
-        return DB::select_array($fields)
-            ->from('users')
-            ->join('user_identities')
-            ->on('users.user_id', '=', 'user_identities.user_id')
-            ->where($find_by_field, '=', DB::expr($find_by_value))
-            ->execute()
-            ->current();
+        return ORM::factory('User')->get_user_data($user_id, $columns);
+    }
+
+
+    /**
+     * Get the user id by column and value
+     *
+     * @param   string  $column
+     * @param   mixed   $value
+     * @return  int
+     */
+    public function get_id_by($column, $value)
+    {
+        return ORM::factory('User')->get_id_by($column, $value);
     }
 
     /**
@@ -229,10 +237,7 @@ class Kohana_User_Manager {
     public function garbage_collector()
     {
         // Delete outdated cookies
-        DB::delete('auth_cookies')
-            ->where('valid_until', '<', date('Y-m-d H:i:s'))
-            ->execute();
-
+        ORM::factory('User_Cookie')->garbage_collector(time());
     }
 
     /**
