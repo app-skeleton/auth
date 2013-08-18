@@ -34,7 +34,8 @@ class Kohana_Model_Identity extends ORM {
     protected $_reserved = array(
         'guest',
         'administrator',
-        'admin'
+        'admin',
+        'user'
     );
 
     /**
