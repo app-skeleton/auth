@@ -87,6 +87,18 @@ class Kohana_Model_Password_Recovery_Link extends ORM {
     }
 
     /**
+     * Delete all password recovery links for the given email
+     *
+     * @param   string  $email
+     */
+    public function delete_all($email)
+    {
+        DB::delete($this->_table_name)
+            ->where('email', '=', $email)
+            ->execute();
+    }
+
+    /**
      * Garbage collector
      *
      * @param   int     $start_time
