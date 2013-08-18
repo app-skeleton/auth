@@ -226,9 +226,9 @@ class Kohana_User_Manager {
      * @param   mixed   $value
      * @return  int
      */
-    public function get_id_by($column, $value)
+    public function get_user_id_by($column, $value)
     {
-        return ORM::factory('User')->get_id_by($column, $value);
+        return ORM::factory('User')->get_user_id_by($column, $value);
     }
 
     /**
