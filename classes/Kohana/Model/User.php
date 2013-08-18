@@ -77,6 +77,77 @@ class Kohana_Model_User extends ORM {
         }
         return TRUE;
     }
+
+    /**
+     * Get data about a user
+     *
+     * @param   int     $user_id
+     * @param   array   $columns
+     * @return  array
+     */
+    public function get_user_data($user_id, $columns)
+    {
+        $columns = isset($columns)
+            ? $columns
+            : array(
+                'users.user_id',
+                'users.first_name',
+                'users.last_name',
+                'user_identities.username',
+                'user_identities.email',
+                'user_identities.status',
+            );
+
+        return DB::select_array($columns)
+            ->from('users')
+            ->join('user_identities')
+            ->on('users.user_id', '=', 'user_identities.user_id')
+            ->on('users.user_id', '=', DB::expr($user_id))
+            ->execute()
+            ->current();
+    }
+
+    /**
+     * Get the user id by column and value
+     *
+     * @param   string  $column
+     * @param   mixed   $value
+     * @return  int
+     */
+    public function get_id_by($column, $value)
+    {
+        return DB::select('users.user_id')
+            ->from('users')
+            ->join('user_identities')
+            ->on('users.user_id', '=', 'user_identities.user_id')
+            ->where($column, '=', $value)
+            ->execute()
+            ->get('user_id');
+    }
+
+    /**
+     * Begin a transaction
+     */
+    public function begin()
+    {
+        $this->_db->begin();
+    }
+
+    /**
+     * Commit a transaction
+     */
+    public function commit()
+    {
+        $this->_db->commit();
+    }
+
+    /**
+     * Rollback a transaction
+     */
+    public function rollback()
+    {
+        $this->_db->rollback();
+    }
 }
 
 // END Kohana_Model_User
