@@ -18,7 +18,7 @@ class Kohana_Model_User_Cookie extends ORM {
         'cookie_id' => array(),
         'user_id' => array(),
         'random_key' => array(),
-        'valid_until' => array()
+        'expires' => array()
     );
 
 
@@ -43,6 +43,19 @@ class Kohana_Model_User_Cookie extends ORM {
                 array('not_empty')
             ),
         );
+    }
+
+    /**
+     * Garbage collector
+     *
+     * @param   int     $start_time
+     */
+    public function garbage_collector($start_time)
+    {
+        // Delete outdated cookies
+        DB::delete('auth_cookies')
+            ->where('expires_on', '<', date('Y-m-d H:i:s', $start_time))
+            ->execute();
     }
 }
 
