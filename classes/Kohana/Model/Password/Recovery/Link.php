@@ -85,6 +85,18 @@ class Kohana_Model_Password_Recovery_Link extends ORM {
 
         return $link->email;
     }
+
+    /**
+     * Garbage collector
+     *
+     * @param   int     $start_time
+     */
+    public function garbage_collector($start_time)
+    {
+        DB::delete('password_recovery_links')
+            ->where('expires_on', '<', date('Y-m-d H:i:s', $start_time))
+            ->execute();
+    }
 }
 
 // END Kohana_Model_Password_Recovery_Link
