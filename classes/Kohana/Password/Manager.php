@@ -82,9 +82,8 @@ class Kohana_Password_Manager {
      */
     public function delete_recovery_links($email)
     {
-        DB::delete('password_recovery_links')
-            ->where('email', '=', $email)
-            ->execute();
+        ORM::factory('Password_Recovery_Link')
+            ->delete_all($email);
     }
 
     /**
