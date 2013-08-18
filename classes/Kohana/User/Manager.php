@@ -21,7 +21,7 @@ class Kohana_User_Manager {
      * @throws  Database_Exception|Exception
      * @return  array   An array containing the user and the identity models data as arrays
      */
-    public function signup($values)
+    public function signup_user($values)
     {
         // Validation errors
         $errors = array();
@@ -107,7 +107,7 @@ class Kohana_User_Manager {
      * @throws  Exception
      * @return  array   An array containing the user and the identity models data as arrays
      */
-    public function update($user_id, $values)
+    public function update_user($user_id, $values)
     {
         // User id must be valid
         if ( ! is_numeric($user_id))
