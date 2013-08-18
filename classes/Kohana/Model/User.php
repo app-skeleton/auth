@@ -17,7 +17,8 @@ class Kohana_Model_User extends ORM {
     protected $_table_columns = array(
         'user_id' => array(),
         'first_name' => array(),
-        'last_name' => array()
+        'last_name' => array(),
+        'timezone' => array()
     );
 
     protected $_has_one = array(
@@ -93,6 +94,7 @@ class Kohana_Model_User extends ORM {
                 'users.user_id',
                 'users.first_name',
                 'users.last_name',
+                'users.timezone',
                 'user_identities.username',
                 'user_identities.email',
                 'user_identities.status',
