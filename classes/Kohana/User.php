@@ -217,6 +217,29 @@ class Kohana_User {
     }
 
     /**
+     * Convert a date/time to users timezone
+     *
+     * @param   string      $original_datetime
+     * @param   string      $original_timezone
+     * @param   string      $format
+     * @return  string
+     */
+    public function datetime($original_datetime, $original_timezone = 'UTC', $format = 'Y-m-d H:i:s')
+    {
+        // Get users timezone
+        $user_timezone = $this->get_state('timezone');
+
+        // Instantiate the DateTime object, setting it's date, time and time zone.
+        $datetime = new DateTime($original_datetime, new DateTimeZone($original_timezone));
+
+        // Set timezone
+        $datetime->setTimeZone(new DateTimeZone($user_timezone));
+
+        // Return the formatted date/time string
+        return $datetime->format($format);
+    }
+
+    /**
      * Load user states from db
      *
      * @return  void
