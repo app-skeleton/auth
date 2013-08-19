@@ -39,6 +39,11 @@ class Kohana_Model_User extends ORM {
             'first_name' => array(
                 array(array($this, 'full_name'), array(':value', ':validation')),
                 array('not_empty')
+            ),
+
+            'timezone' => array(
+                array('not_empty'),
+                array(array($this, 'valid_timezone'), array(':value')),
             )
         );
     }
@@ -76,7 +81,28 @@ class Kohana_Model_User extends ORM {
             $validation->label('full_name', 'full_name');
             $validation->error('full_name', 'not_empty');
         }
+
         return TRUE;
+    }
+
+    /**
+     * Check if a string is a valid timezone identifier
+     *
+     * @param   string  $timezone_identifier
+     * @return  bool
+     */
+    public function valid_timezone($timezone_identifier)
+    {
+        try
+        {
+            new DateTimeZone($timezone_identifier);
+
+            return TRUE;
+        }
+        catch (Exception $e)
+        {
+            return FALSE;
+        }
     }
 
     /**
