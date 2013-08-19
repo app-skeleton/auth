@@ -58,9 +58,10 @@ class Kohana_User_Manager {
                 unset($identity_errors['_external']);
                 $identity_errors = array_merge($identity_errors, $identity_external_errors);
             }
-
-            $errors = array_merge($user_errors, $identity_errors);
         }
+
+        // Merge errors
+        $errors = array_merge($user_errors, $identity_errors);
 
         // If validation fails, throw an exception
         if ($errors)
@@ -173,9 +174,10 @@ class Kohana_User_Manager {
                 unset($identity_errors['_external']);
                 $identity_errors = array_merge($identity_errors, $identity_external_errors);
             }
-
-            $errors = array_merge($user_errors, $identity_errors);
         }
+
+        // Merge errors
+        $errors = array_merge($user_errors, $identity_errors);
 
         // If validation fails, throw an exception
         if ($errors)
