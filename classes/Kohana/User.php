@@ -106,6 +106,16 @@ class Kohana_User {
 	}
 
     /**
+     * Get the timezone of the user
+     *
+     * @return  string
+     */
+    public function timezone()
+    {
+        return $this->get_state('timezone');
+    }
+
+    /**
      * Return the unique id for the user
 	 *
      * @return  mixed
@@ -220,17 +230,20 @@ class Kohana_User {
      * Convert a date/time to users timezone
      *
      * @param   string      $original_datetime
-     * @param   string      $original_timezone
      * @param   string      $format
+     * @param   string      $original_timezone
      * @return  string
      */
-    public function datetime($original_datetime, $original_timezone = 'UTC', $format = 'Y-m-d H:i:s')
+    public function datetime($original_datetime, $format = 'Y-m-d H:i:s', $original_timezone = NULL)
     {
         // Get users timezone
         $user_timezone = $this->get_state('timezone');
 
+        // Set original timezone
+        $original_timezone = $original_timezone ? new DateTimeZone($original_timezone) : $original_timezone;
+
         // Instantiate the DateTime object, setting it's date, time and time zone.
-        $datetime = new DateTime($original_datetime, new DateTimeZone($original_timezone));
+        $datetime = new DateTime($original_datetime, $original_timezone);
 
         // Set timezone
         $datetime->setTimeZone(new DateTimeZone($user_timezone));
