@@ -92,18 +92,30 @@ class Kohana_User {
     /**
      * Get (or optionally set) the unique name (username) for the user
      *
-     * @param   string  $name
+     * @param   string  $username
      * @return  string
      */
-	public function name($name = NULL)
+	public function username($username = NULL)
 	{
-		if ( ! empty($name))
+		if ( ! empty($username))
         {
-            $this->set_state('__name', $name);
+            $this->set_state('__username', $username);
         }
 
-        return ($this->get_state('__name')) ? $this->get_state('__name') : Kohana::$config->load('auth/user')->get('guest_name');
+        return $this->get_state('__username');
 	}
+
+    /**
+     * Get the full name of the user
+     *
+     * @return  string
+     */
+    public function full_name()
+    {
+        return $this->logged_in()
+            ? trim($this->get_state('first_name').' '.$this->get_state('last_name'))
+            : Kohana::$config->load('auth/user')->get('guest_name');
+    }
 
     /**
      * Get the timezone of the user
