@@ -37,8 +37,8 @@ class Kohana_Identity {
      * @var array
      */
     protected $_states_to_load = array(
-        '__name'    => 'username',
-        '__id'      => 'user_id'
+        '__username'    => 'username',
+        '__id'          => 'user_id'
     );
 
     /**
