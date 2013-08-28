@@ -103,7 +103,7 @@ class Kohana_User_Manager {
      *
      * @param   int     $user_id
      * @param   array   $values
-     * @throws  Kohana_Exception
+     * @throws  User_Exception
      * @throws  User_Validation_Exception
      * @throws  Exception
      * @return  array   An array containing the user and the identity models data as arrays
@@ -113,7 +113,7 @@ class Kohana_User_Manager {
         // User id must be valid
         if ( ! is_numeric($user_id))
         {
-            throw new Kohana_Exception('Invalid user id.');
+            throw new User_Exception('Invalid user id.');
         }
 
         // Validation errors
@@ -126,7 +126,7 @@ class Kohana_User_Manager {
 
         if ( ! $user_model->loaded())
         {
-            throw new Kohana_Exception('Can not find user by id: '.$user_id);
+            throw new User_Exception('Can not find user by id: '.$user_id);
         }
 
         // Get validation errors
