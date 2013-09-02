@@ -209,6 +209,17 @@ class Kohana_User_Manager {
     }
 
     /**
+     * Check if a user was already registered with the given email
+     *
+     * @param   $email
+     * @return  bool
+     */
+    public function unique_email($email)
+    {
+        return ORM::factory('Identity')->unique_email($email);
+    }
+
+    /**
      * Get user data
      *
      * @param   int     $user_id

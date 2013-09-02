@@ -12,6 +12,7 @@ The list of the main classes and their API:
 
 - signup_user
 - update_user
+- unique_email
 - get_user_data
 - get_user_id_by
 - garbage_collector
