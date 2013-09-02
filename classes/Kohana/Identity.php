@@ -172,8 +172,8 @@ class Kohana_Identity {
      * Authenticate the user by user id
      * !!! Use this function only is special situations
      *
-     * @param $user_id
-     * @throws User_Identity_Exception
+     * @param   int     $user_id
+     * @throws  User_Identity_Exception
      */
     public function authenticate_with_id($user_id)
     {
@@ -200,8 +200,8 @@ class Kohana_Identity {
 	/**
      * Stores a variable in user states.
 	 *
-	 * @param	$key
-	 * @param	$value
+	 * @param	string  $key
+	 * @param	mixed   $value
 	 * @return	Kohana_Identity
      */
 	public function set_state($key, $value)
@@ -214,8 +214,8 @@ class Kohana_Identity {
     /**
      * Returns a variable from user states, or default.
 	 *
-	 * @param $key
-     * @param $default
+	 * @param   string  $key
+     * @param   mixed   $default
 	 * @return mixed
      */
 	public function get_state($key, $default = NULL)
@@ -226,12 +226,22 @@ class Kohana_Identity {
 	/**
      * Returns the list of user states
 	 *
-     * @return array
+     * @return  array
      */
 	public function get_states()
 	{		
 		return $this->_states;
 	}
+
+    /**
+     * Return the users id
+     *
+     * @return  mixed
+     */
+    public function id()
+    {
+        return $this->get_state('__id');
+    }
 
     /**
      * Returns an instance of the class.
