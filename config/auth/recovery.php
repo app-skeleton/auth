@@ -5,7 +5,7 @@ return array(
         'subject' => 'Recover you password',
         'sender' => array(
             'email' => 'noreply@appdomain.com',
-            'name'  => 'App name'
+            'name'  => APPNAME
         )
     ),
 
