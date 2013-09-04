@@ -78,7 +78,7 @@ class Kohana_User_Manager {
 
             // Setup identity
             $identity_model->user_id = $user_model->pk();
-            $identity_model->status = 'active';
+            $identity_model->status = Identity::STATUS_ACTIVE;
 
             // Save identity
             $identity_model->save();

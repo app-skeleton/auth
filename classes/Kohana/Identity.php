@@ -48,12 +48,17 @@ class Kohana_Identity {
      */
     protected $_states;
 
-    // Error codes
-	const ERROR_USERNAME_INVALID = 1;
-	const ERROR_PASSWORD_INVALID = 2;
-	const ERROR_IDENTITY_EMPTY = 3;
-    const ERROR_IDENTITY_INACTIVE = 4;
-    const ERROR_USER_ID_INVALID = 5;
+    // Status constants
+    const STATUS_ACTIVE     = 'active';
+    const STATUS_INACTIVE   = 'inactive';
+    const STATUS_PENDING    = 'pending';
+
+    // Error code constants
+	const ERROR_USERNAME_INVALID    = 1;
+	const ERROR_PASSWORD_INVALID    = 2;
+	const ERROR_IDENTITY_EMPTY      = 3;
+    const ERROR_IDENTITY_INACTIVE   = 4;
+    const ERROR_USER_ID_INVALID     = 5;
 	
     /**
      * Construct
@@ -112,7 +117,7 @@ class Kohana_Identity {
 				}
 				else 
 				{
-					if ($identity->status != 'active')
+					if ($identity->status != self::STATUS_ACTIVE)
                     {
                         // Inactive identity
                         $error_code = self::ERROR_IDENTITY_INACTIVE;
