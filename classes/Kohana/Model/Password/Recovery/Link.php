@@ -65,28 +65,6 @@ class Kohana_Model_Password_Recovery_Link extends ORM {
     }
 
     /**
-     * Return the email address associated with a secure key, or throw exception
-     *
-     * @param   string  $secure_key
-     * @throws  Password_Recovery_Link_Exception
-     * @return  string
-     */
-    public function get_email($secure_key)
-    {
-        $link = ORM::factory('Password_Recovery_Link')
-                    ->where('secure_key', '=', $secure_key)
-                    ->and_where('expires_on', '>', date('Y-m-d H:i:s'))
-                    ->find();
-
-        if ( ! $link->loaded())
-        {
-            throw new Password_Recovery_Link_Exception(Kohana::message('auth/'.i18n::lang().'/auth', 'reset.invalid_secure_key'));
-        }
-
-        return $link->email;
-    }
-
-    /**
      * Delete all password recovery links for the given email
      *
      * @param   string  $email
