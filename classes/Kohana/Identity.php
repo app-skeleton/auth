@@ -51,7 +51,7 @@ class Kohana_Identity {
     // Status constants
     const STATUS_ACTIVE     = 'active';
     const STATUS_INACTIVE   = 'inactive';
-    const STATUS_PENDING    = 'pending';
+    const STATUS_INVITED    = 'invited';
 
     // Error code constants
 	const ERROR_USERNAME_INVALID    = 1;
