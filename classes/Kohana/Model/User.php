@@ -154,6 +154,37 @@ class Kohana_Model_User extends ORM {
     }
 
     /**
+     * Get data about a user by columns and value
+     *
+     * @param   string  $column
+     * @param   mixed   $value
+     * @param   array   $columns
+     * @return  array
+     */
+    public function get_user_data_by($column, $value, $columns)
+    {
+        $columns = isset($columns)
+            ? $columns
+            : array(
+                'users.user_id',
+                'users.first_name',
+                'users.last_name',
+                'users.timezone',
+                'user_identities.username',
+                'user_identities.email',
+                'user_identities.status',
+            );
+
+        return DB::select_array($columns)
+            ->from('users')
+            ->join('user_identities')
+            ->on('users.user_id', '=', 'user_identities.user_id')
+            ->on($column, '=', $value)
+            ->execute()
+            ->current();
+    }
+
+    /**
      * Begin a transaction
      */
     public function begin()
