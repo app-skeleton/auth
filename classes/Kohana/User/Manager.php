@@ -245,6 +245,20 @@ class Kohana_User_Manager {
     }
 
     /**
+    /**
+     * Get data about a user by columns and value
+     *
+     * @param   string  $column
+     * @param   mixed   $value
+     * @param   array   $columns
+     * @return  array
+     */
+    public function get_user_data_by($column, $value, $columns = NULL)
+    {
+        return ORM::factory('User')->get_user_data_by($column, $value, $columns);
+    }
+
+    /**
      * Garbage collector
      */
     public function garbage_collector()
