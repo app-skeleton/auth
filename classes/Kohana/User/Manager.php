@@ -24,7 +24,6 @@ class Kohana_User_Manager {
     public function signup_user($values)
     {
         // Validation errors
-        $errors = array();
         $user_errors = array();
         $identity_errors = array();
 
@@ -117,7 +116,6 @@ class Kohana_User_Manager {
         }
 
         // Validation errors
-        $errors = array();
         $user_errors = array();
         $identity_errors = array();
 
@@ -148,7 +146,7 @@ class Kohana_User_Manager {
             ->find();
 
         // If not password set, we don't have to update password
-        if (empty($values['password']))
+        if (empty($values['password']) && $identity_model->get('status') != Identity::STATUS_INVITED)
         {
             unset($values['password']);
             unset($values['password_confirm']);
