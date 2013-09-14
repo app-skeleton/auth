@@ -1,26 +1,19 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 return
-    array(
-        'login' => array(
-            'error' => array(
-                // Wrong username
-                1 => 'Wrong username or password.',
-                // Wrong password
-                2 => 'Wrong username or password.',
-                // Empty login
-                3 => 'Enter your username and password.',
-                // Inactive account
-                4 => 'Wrong username or password.'
-            )
-        ),
+array(
+    'login' => array(
+        'error' => array(
+            // Wrong username
+            'username_invalid' => 'Wrong username or password.',
 
-        'recover' => array(
-            'no_email'      => 'Provide your email address.',
-            'invalid_email' => 'Can\'t find an account for :email.'
-        ),
+            // Wrong password
+            'password_invalid' => 'Wrong username or password.',
 
-        'reset' => array(
-            'invalid_secure_key' => 'Invalid secure key.'
+            // Empty login
+            'identity_empty' => 'Enter your username and password.',
+
+            // Inactive account
+            'identity_inactive' => 'Your account is not active.'
         )
-    );
-?>
+    )
+);
