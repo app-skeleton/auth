@@ -11,42 +11,25 @@
 class Kohana_Password_Recovery_Email {
 
     /**
-     * Identity
-     *
-     * @var Identity
+     * @var string  The email address to send the recovery email to
      */
-    protected $_identity;
+    protected $_email;
+
+    /**
+     * @var array   The data to render the email template with
+     */
+    protected $_data;
 
     /**
      * Construct
      *
      * @param   string  $email
-     * @throws  Password_Recovery_Email_Exception
+     * @param   array   $data
      */
-    public function __construct($email)
+    protected function __construct($email, $data)
     {
-        if (empty($email))
-        {
-            // No email provided
-            throw new Password_Recovery_Email_Exception(Kohana::message('auth/'.i18n::lang().'/auth', 'recover.no_email'));
-        }
-        else
-        {
-            // Check if the provided email is valid
-            $identity = ORM::factory('Identity')->where('email', '=', $email)->find();
-            if ( ! $identity->loaded())
-            {
-                // Non existing user
-                throw new Password_Recovery_Email_Exception(
-                    strtr(Kohana::message('auth/'.i18n::lang().'/auth', 'recover.invalid_email'), array(':email' => $email))
-                );
-            }
-            else
-            {
-                // Existing user
-                $this->_identity = $identity;
-            }
-        }
+        $this->_email = $email;
+        $this->_data = $data;
     }
 
     /**
@@ -54,20 +37,11 @@ class Kohana_Password_Recovery_Email {
      */
     public function send()
     {
+        $view = View::factory('auth/email/'.i18n::lang().'/recover', $this->_data);
         $config = Kohana::$config->load('auth/recovery');
-        $secure_key = ORM::factory('Password_Recovery_Link')
-            ->generate($this->_identity->email)
-            ->save()
-            ->secure_key();
-
-        $user_model = $this->_identity->user;
-        $view = View::factory('auth/email/'.i18n::lang().'/recover');
-        $view->name = $user_model->first_name.' '.$user_model->last_name;
-        $view->email = $this->_identity->email;
-        $view->url = $config['link']['url'].$secure_key;
 
         Email::factory($config['email']['subject'], $view->render(), 'text/html')
-            ->to($this->_identity->email)
+            ->to($this->_email)
             ->from($config['email']['sender']['email'], $config['email']['sender']['name'])
             ->send();
     }
@@ -76,11 +50,12 @@ class Kohana_Password_Recovery_Email {
      * Factory
      *
      * @param   string  $email
+     * @param   array   $data
      * @return  Password_Recovery_Email
      */
-    public static function factory($email)
+    public static function factory($email, $data)
     {
-        return new Password_Recovery_Email($email);
+        return new Password_Recovery_Email($email, $data);
     }
 }
 
