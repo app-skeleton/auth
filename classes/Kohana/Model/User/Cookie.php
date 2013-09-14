@@ -17,33 +17,16 @@ class Kohana_Model_User_Cookie extends ORM {
     protected $_table_columns = array(
         'cookie_id' => array(),
         'user_id' => array(),
-        'random_key' => array(),
+        'secure_key' => array(),
         'expires_on' => array()
     );
 
 
     protected $_belongs_to = array(
         'user' => array(
-            'model'   => 'user',
+            'model'   => 'user'
         ),
     );
-
-    /**
-     * Defines validation rules
-     *
-     * @return  array
-     */
-    public function rules()
-    {
-        return array(
-            'user_id' => array(
-                array('not_empty')
-            ),
-            'random_key' => array(
-                array('not_empty')
-            ),
-        );
-    }
 
     /**
      * Garbage collector
@@ -55,7 +38,7 @@ class Kohana_Model_User_Cookie extends ORM {
         // Delete outdated cookies
         DB::delete('auth_cookies')
             ->where('expires_on', '<', date('Y-m-d H:i:s', $start_time))
-            ->execute();
+            ->execute($this->_db);
     }
 }
 
