@@ -12,19 +12,17 @@ The list of the main classes and their API:
 
 - signup_user
 - update_user
-- unique_email
 - get_user_data
-- get_user_id_by
+- get_user_data_by
 - garbage_collector
 - instance
 
 
 ### Password_Manager
 
-- recover
-- get_recovery_email
-- reset
-- delete_recovery_links
+- recover_password
+- check_recovery_link
+- reset_password
 - garbage_collector
 - instance
 
@@ -37,6 +35,7 @@ The list of the main classes and their API:
 - set_state
 - get_state
 - get_states
+- id
 - factory
 
 
@@ -45,7 +44,10 @@ The list of the main classes and their API:
 - login
 - logout
 - logged_in
-- name
+- username
+- full_name
+- timezone
+- datetime
 - id
 - authenticated_with
 - set_state
