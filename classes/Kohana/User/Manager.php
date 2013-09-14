@@ -10,29 +10,79 @@
 
 class Kohana_User_Manager {
 
-    // Singleton instance
+    /**
+     * @var User_Manager    Singleton instance
+     */
     protected static $_instance;
 
     /**
      * Sign up a new user
      *
-     * @param   array $values
-     * @throws  User_Validation_Exception
-     * @throws  Database_Exception|Exception
+     * @param   array   $values
+     * @param   bool    $transactional
+     * @throws  Auth_Validation_Exception
+     * @throws  Exception
+     * @return  array   An array containing the user and the identity model data
+     */
+    public function signup_user($values, $transactional = TRUE)
+    {
+        $user_model = ORM::factory('User');
+        $identity_model = ORM::factory('Identity');
+
+        // Save the user
+        return $this->_save_user($user_model, $identity_model, $values, $transactional);
+    }
+
+    /**
+     * Update user
+     *
+     * @param   int     $user_id
+     * @param   array   $values
+     * @param   bool    $transactional
+     * @throws  Auth_Exception
+     * @throws  Auth_Validation_Exception
+     * @throws  Exception
      * @return  array   An array containing the user and the identity models data as arrays
      */
-    public function signup_user($values)
+    public function update_user($user_id, $values, $transactional = TRUE)
     {
-        // Validation errors
+        // Load the user
+        $user_model = ORM::factory('User', $user_id);
+
+        if ( ! $user_model->loaded())
+        {
+            throw new Auth_Exception(Auth_Exception::E_RESOURCE_NOT_FOUND, 'Can not find user.');
+        }
+
+        // Load the identity
+        $identity_model = ORM::factory('Identity')
+            ->where('user_id', '=', $user_id)
+            ->find();
+
+        // Save the user
+        return $this->_save_user($user_model, $identity_model, $values, $transactional);
+    }
+
+    /**
+     * Validate and save user to the database
+     *
+     * @param   ORM     $user_model
+     * @param   ORM     $identity_model
+     * @param   array   $values
+     * @param   bool    $transactional
+     * @return  array
+     * @throws  Auth_Validation_Exception
+     * @throws  Exception
+     */
+    protected function _save_user($user_model, $identity_model, $values, $transactional)
+    {
         $user_errors = array();
         $identity_errors = array();
 
-        // Create user, and get validation errors
-        $user_model = ORM::factory('User');
-        $user_model->values($values);
-
         try
         {
+            // Validate the user
+            $user_model->values($values);
             $user_model->check();
         }
         catch (ORM_Validation_Exception $e)
@@ -40,12 +90,10 @@ class Kohana_User_Manager {
             $user_errors = $e->errors('models/'.i18n::lang().'/user', FALSE);
         }
 
-        // Create identity, and get validation errors
-        $identity_model = ORM::factory('Identity');
-        $identity_model->values($values);
-
         try
         {
+            // Validate the identity
+            $identity_model->values($values);
             $identity_model->check($identity_model->get_password_validation($values));
         }
         catch (ORM_Validation_Exception $e)
@@ -59,201 +107,81 @@ class Kohana_User_Manager {
             }
         }
 
-        // Merge errors
+        // Merge user and identity validation errors
         $errors = array_merge($user_errors, $identity_errors);
 
         // If validation fails, throw an exception
-        if ($errors)
+        if ( ! empty($errors))
         {
-            throw new User_Validation_Exception($errors);
-        }            
+            throw new Auth_Validation_Exception($errors);
+        }
 
-        // Validation passes, save the user, and the identity
-        $user_model->begin();
+        // Validation passes, begin transaction
+        if ($transactional)
+        {
+            $user_model->begin();
+        }
 
         try
         {
+            // Save user
             $user_model->save();
 
-            // Setup identity
-            $identity_model->user_id = $user_model->pk();
-            $identity_model->status = Identity::STATUS_ACTIVE;
+            if ( ! $identity_model->loaded())
+            {
+                // Setup identity
+                $identity_model->set('user_id', $user_model->pk());
+                $identity_model->set('status', Identity::STATUS_ACTIVE);
+            }
 
             // Save identity
             $identity_model->save();
 
-            // Insert successful, commit the changes
-            $user_model->commit();
-
-            return array($user_model->as_array(), $identity_model->as_array());
-        }
-        catch (Exception $e)
-        {
-            // Insert failed, roll back changes
-            $user_model->rollback();
-
-            // Re-throw the exception
-            throw $e;
-        }
-    }
-
-    /**
-     * Update user
-     *
-     * @param   int     $user_id
-     * @param   array   $values
-     * @throws  User_Exception
-     * @throws  User_Validation_Exception
-     * @throws  Exception
-     * @return  array   An array containing the user and the identity models data as arrays
-     */
-    public function update_user($user_id, $values)
-    {
-        // User id must be valid
-        if ( ! is_numeric($user_id))
-        {
-            throw new User_Exception('Invalid user id.');
-        }
-
-        // Validation errors
-        $user_errors = array();
-        $identity_errors = array();
-
-        // Load the user
-        $user_model = ORM::factory('User', $user_id);
-
-        if ( ! $user_model->loaded())
-        {
-            throw new User_Exception('Can not find user by id: '.$user_id);
-        }
-
-        // Get validation errors
-        $user_model->values($values);
-
-        try
-        {
-            $user_model->check();
-        }
-        catch (ORM_Validation_Exception $e)
-        {
-            $user_errors = $e->errors('models/'.i18n::lang().'/user', FALSE);
-        }
-
-
-        // Load identity, and get validation errors
-        $identity_model = ORM::factory('Identity')
-            ->where('user_id', '=', $user_id)
-            ->find();
-
-        // If not password set, we don't have to update password
-        if (empty($values['password']) && $identity_model->get('status') != Identity::STATUS_INVITED)
-        {
-            unset($values['password']);
-            unset($values['password_confirm']);
-            $extra_validation = NULL;
-        }
-        else
-        {
-            $extra_validation = $identity_model->get_password_validation($values);
-        }
-
-        $identity_model->values($values);
-
-        try
-        {
-            $identity_model->check($extra_validation);
-        }
-        catch (ORM_Validation_Exception $e)
-        {
-            $identity_errors = $e->errors('models/'.i18n::lang().'/user', FALSE);
-            if (isset($identity_errors['_external']))
+            // Everything was going fine, commit
+            if ($transactional)
             {
-                $identity_external_errors = $identity_errors['_external'];
-                unset($identity_errors['_external']);
-                $identity_errors = array_merge($identity_errors, $identity_external_errors);
+                $user_model->commit();
             }
-        }
 
-        // Merge errors
-        $errors = array_merge($user_errors, $identity_errors);
-
-        // If validation fails, throw an exception
-        if ($errors)
-        {
-            throw new User_Validation_Exception($errors);
-        }
-
-        // Validation passes, save the user, and the identity
-        $user_model->begin();
-
-        try
-        {
-            $user_model->save();
-            $identity_model->save();
-
-            // Update successful, commit the changes
-            $user_model->commit();
-
-            return array($user_model->as_array(), $identity_model->as_array());
+            return array(
+                'user' => $user_model->as_array(),
+                'identity' => $identity_model->as_array()
+            );
         }
         catch (Exception $e)
         {
-            // Update failed, roll back changes
-            $user_model->rollback();
+            // Something went wrong, rollback
+            if ($transactional)
+            {
+                $user_model->rollback();
+            }
 
             // Re-throw the exception
             throw $e;
         }
-    }
-
-    /**
-     * Check if a user was already registered with the given email
-     *
-     * @param   $email
-     * @return  bool
-     */
-    public function unique_email($email)
-    {
-        return ORM::factory('Identity')->unique_email($email);
     }
 
     /**
      * Get user data
      *
      * @param   int     $user_id
-     * @param   array   $columns
      * @return  array
      */
-    public function get_user_data($user_id, $columns = NULL)
+    public function get_user_data($user_id)
     {
-        return ORM::factory('User')->get_user_data($user_id, $columns);
+        return ORM::factory('User')->get_user_data_by('user_id', $user_id);
     }
-
 
     /**
      * Get the user id by column and value
      *
-     * @param   string  $column
+     * @param   string  $column     Possible values: user_id, username, email
      * @param   mixed   $value
      * @return  int
      */
-    public function get_user_id_by($column, $value)
+    public function get_user_data_by($column, $value)
     {
-        return ORM::factory('User')->get_user_id_by($column, $value);
-    }
-
-    /**
-    /**
-     * Get data about a user by columns and value
-     *
-     * @param   string  $column
-     * @param   mixed   $value
-     * @param   array   $columns
-     * @return  array
-     */
-    public function get_user_data_by($column, $value, $columns = NULL)
-    {
-        return ORM::factory('User')->get_user_data_by($column, $value, $columns);
+        return ORM::factory('User')->get_user_data_by($column, $value);
     }
 
     /**
@@ -281,4 +209,4 @@ class Kohana_User_Manager {
     }
 }
 
-//END Kohana_User_Manager
+// END Kohana_User_Manager
