@@ -22,46 +22,35 @@ class Kohana_Model_Password_Recovery_Link extends ORM {
     );
 
     /**
-     * Define validation rules
+     * Defines validation rules
      *
      * @return  array
      */
     public function rules()
     {
         return array(
-            'secure_key' => array(
-                array('not_empty')
-            ),
             'email' => array(
                 array('not_empty'),
-                array('email')
-            ),
+                array('email'),
+                array(array($this, 'email_exists'), array(':value')),
+            )
         );
     }
 
     /**
-     * Generate a new password recovery link
+     * Check if the given email exists in the database
      *
      * @param   string  $email
-     * @return  Model_Password_Recovery_Link
+     * @return  bool
      */
-    public function generate($email)
+    public function email_exists($email)
     {
-        $config = Kohana::$config->load('auth/recovery');
-        $this->secure_key = Text::random('alnum', 32);
-        $this->email = $email;
-        $this->expires_on = date('Y-m-d H:i:s', time() + $config['link']['lifetime']);
-        return $this;
-    }
-
-    /**
-     * Return secure_key
-     *
-     * @return  string
-     */
-    public function secure_key()
-    {
-        return $this->secure_key;
+        return (bool) DB::select(array(DB::expr('COUNT("*")'), 'total_count'))
+            ->from('user_identities')
+            ->where('email', '=', $email)
+            ->where('status', '!=', Identity::STATUS_INVITED)
+            ->execute($this->_db)
+            ->get('total_count');
     }
 
     /**
@@ -73,7 +62,7 @@ class Kohana_Model_Password_Recovery_Link extends ORM {
     {
         DB::delete($this->_table_name)
             ->where('email', '=', $email)
-            ->execute();
+            ->execute($this->_db);
     }
 
     /**
@@ -85,7 +74,7 @@ class Kohana_Model_Password_Recovery_Link extends ORM {
     {
         DB::delete('password_recovery_links')
             ->where('expires_on', '<', date('Y-m-d H:i:s', $start_time))
-            ->execute();
+            ->execute($this->_db);
     }
 }
 
