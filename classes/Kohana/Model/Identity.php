@@ -49,21 +49,21 @@ class Kohana_Model_Identity extends ORM {
             'username' => array(
                 array('not_empty'),
                 array('min_length', array(':value', 4)),
-                array('max_length', array(':value', 64)),
-                array(array($this, 'unique_username'), array(':value')),
+                array('max_length', array(':value', 32)),
+                array('regex', array(':value', '/^[A-Za-z0-9.]+$/')),
+                array(array($this, 'username_available'), array(':value')),
                 array(array($this, 'not_reserved'), array(':value')),
             ),
             'email' => array(
                 array('not_empty'),
-                array('max_length', array(':value', 127)),
                 array('email'),
-                array(array($this, 'unique_email'), array(':value')),
+                array(array($this, 'email_available'), array(':value')),
             )
         );
     }
 
     /**
-     *  Defines filters
+     * Defines filters
      *
      * @return  array
      */
@@ -94,30 +94,34 @@ class Kohana_Model_Identity extends ORM {
         return crypt($value, $salt);
     }
 
-    // Check if username is available
-    public function unique_username($username)
-    {
-        return $this->_unique_field('username', $username);
-    }
-
-    // Check if email is available
-    public function unique_email($email)
-    {
-        return $this->_unique_field('email', $email);
-    }
-
     /**
-     * Check whether a field is unique
+     * Check if the given username is available
      *
-     * @param   string  $field
-     * @param   string  $value
+     * @param   string  $username
      * @return  bool
      */
-    protected function _unique_field($field, $value)
+    public function username_available($username)
     {
         return ! (bool) DB::select(array(DB::expr('COUNT("*")'), 'total_count'))
             ->from($this->_table_name)
-            ->where($field, '=', $value)
+            ->where('username', '=', $username)
+            ->where($this->_primary_key, '!=', $this->pk())
+            ->where('status', '!=', Identity::STATUS_INVITED)
+            ->execute($this->_db)
+            ->get('total_count');
+    }
+
+    /**
+     * Check if the given email is available
+     *
+     * @param   string  $email
+     * @return  bool
+     */
+    public function email_available($email)
+    {
+        return ! (bool) DB::select(array(DB::expr('COUNT("*")'), 'total_count'))
+            ->from($this->_table_name)
+            ->where('email', '=', $email)
             ->where($this->_primary_key, '!=', $this->pk())
             ->where('status', '!=', Identity::STATUS_INVITED)
             ->execute($this->_db)
@@ -132,15 +136,21 @@ class Kohana_Model_Identity extends ORM {
      */
     public function not_reserved($word)
     {
-        return (( ! in_array(strtolower($word), $this->_reserved)) OR (($this->loaded())) AND (in_array($this->username, $this->_reserved))) ;
+        return ( ! in_array(strtolower($word), $this->_reserved) OR ($this->loaded())) AND (in_array($this->get('username'), $this->_reserved));
     }
 
-    // Password validation rules
+    /**
+     * Get password validation
+     *
+     * @param   $values
+     * @return  Validation
+     */
     public function get_password_validation($values)
     {
         return Validation::factory($values)
             ->rule('password', 'not_empty')
             ->rule('password', 'min_length', array(':value', 6))
+            ->rule('password', 'max_length', array(':value', 32))
             ->rule('password', array($this, 'not_numeric'), array(':value'))
             ->rule('password_confirm', 'matches', array(':validation', ':field', 'password'));
     }
