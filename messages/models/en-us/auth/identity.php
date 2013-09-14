@@ -4,23 +4,23 @@ array(
     'username'  => array(
         'not_empty'             => 'Provide a username.',
         'min_length'            => 'Username must be at least 4 characters long.',
-        'max_length'            => 'Username must be at most 16 characters long.',
+        'max_length'            => 'Username must be at most 32 characters long.',
         'regex'                 => 'Username must contain only letters, numbers and periods.',
-        'unique_username'       => 'This username is already registered.',
+        'username_available'    => 'This username is already registered.',
         'not_reserved'          => 'This username is reserved.',
     ),
 
     'email' => array(
         'not_empty'         => 'Provide your email address.',
         'email'             => 'Please provide a valid email address.',
-        'unique_email'      => 'This email address is already registered.',
+        'email_available'   => 'This email address is already registered.',
     ),
 
     '_external' => array(
         'password' => array(
             'not_empty'      => 'Choose a password.',
             'min_length'     => 'Password must be at least 6 characters long.',
-            'max_length'     => 'Password must be at most 16 characters long.',
+            'max_length'     => 'Password must be at most 32 characters long.',
             'not_numeric'    => 'Your password can&#39;t contain only digits.',
         ),
         'password_confirm' => array(
@@ -28,4 +28,4 @@ array(
         ),
     )
 );
-?>
+

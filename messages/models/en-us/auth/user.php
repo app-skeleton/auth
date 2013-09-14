@@ -13,4 +13,4 @@ array(
         'valid_timezone' => 'Please select a timezone.'
     )
 );
-?>
+

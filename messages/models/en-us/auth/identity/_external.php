@@ -11,4 +11,4 @@ array(
         'matches'   => 'These passwords don&#39;t match.',
     ),
 );
-?>
+
