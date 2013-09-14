@@ -10,19 +10,29 @@
 
 class Kohana_User {
 
-	// Session instance
-	protected $_session;
+    /**
+     * @var Session     Session instance
+     */
+    protected $_session;
 
-    // Session key
+    /**
+     * @var string      Session key
+     */
     protected $_session_key;
 
-	// Identity
-	protected $_identity;
+    /**
+     * @var Identity    Identity instance
+     */
+    protected $_identity;
 
-    // States to load from db
+    /**
+     * @var array       States to load from db
+     */
     protected $_states_to_load = array('first_name', 'last_name', 'timezone');
 
-    // Singleton instance
+    /**
+     * @var User        Singleton instance
+     */
     protected static $_instance;
 
     /**
@@ -72,6 +82,7 @@ class Kohana_User {
 	{
 		if ($this->logged_in())
         {
+            // Clear all states
             $this->clear_states();
 
             // Delete "remember me" cookie if exists
@@ -86,11 +97,11 @@ class Kohana_User {
      */
 	public function logged_in()
 	{
-		return ($this->get_state('__id') !== NULL);
+		return $this->get_state('__id') !== NULL;
 	}
 
     /**
-     * Get (or optionally set) the unique name (username) for the user
+     * Get/Set the unique name (username) for the user
      *
      * @param   string  $username
      * @return  string
@@ -128,9 +139,37 @@ class Kohana_User {
     }
 
     /**
+     * Convert a date/time to users timezone
+     *
+     * @param   string      $original_datetime
+     * @param   string      $format
+     * @param   string      $original_timezone
+     * @return  string
+     */
+    public function datetime($original_datetime, $format = 'Y-m-d H:i:s', $original_timezone = NULL)
+    {
+        // Get users timezone
+        $user_timezone = $this->timezone();
+
+        // Set original timezone
+        $original_timezone = $original_timezone
+            ? new DateTimeZone($original_timezone)
+            : $original_timezone;
+
+        // Instantiate the DateTime object, setting it's date, time and time zone.
+        $datetime = new DateTime($original_datetime, $original_timezone);
+
+        // Set timezone
+        $datetime->setTimeZone(new DateTimeZone($user_timezone));
+
+        // Return the formatted date/time string
+        return $datetime->format($format);
+    }
+
+    /**
      * Return the unique id for the user
 	 *
-     * @return  mixed
+     * @return  int
      */
 	public function id()
 	{
@@ -141,7 +180,7 @@ class Kohana_User {
      * Set/Get the authentication method used for login
      *
      * @param   string  $auth_with
-     * @return  mixed
+     * @return  string
      */
     public function authenticated_with($auth_with = NULL)
     {
@@ -172,7 +211,7 @@ class Kohana_User {
 	}
 
 	/**
-     * Return the specified user state, or $default.
+     * Return the specified user state
 	 *
  	 * @param   string  $key
 	 * @param   mixed    $default
@@ -182,7 +221,9 @@ class Kohana_User {
 	{
 		$user_data = $this->_session->get($this->_session_key, array());
 
-		return (isset($user_data[$key])) ? $user_data[$key] : $default;
+		return isset($user_data[$key])
+            ? $user_data[$key]
+            : $default;
 	}
 
 	/**
@@ -221,7 +262,7 @@ class Kohana_User {
 	}
 
     /**
-     * Set states to load from db
+     * Set states to load from db on login
      *
      * !!! You should call this function before calling the login method
      *
@@ -236,32 +277,6 @@ class Kohana_User {
         }
 
         return $states;
-    }
-
-    /**
-     * Convert a date/time to users timezone
-     *
-     * @param   string      $original_datetime
-     * @param   string      $format
-     * @param   string      $original_timezone
-     * @return  string
-     */
-    public function datetime($original_datetime, $format = 'Y-m-d H:i:s', $original_timezone = NULL)
-    {
-        // Get users timezone
-        $user_timezone = $this->get_state('timezone');
-
-        // Set original timezone
-        $original_timezone = $original_timezone ? new DateTimeZone($original_timezone) : $original_timezone;
-
-        // Instantiate the DateTime object, setting it's date, time and time zone.
-        $datetime = new DateTime($original_datetime, $original_timezone);
-
-        // Set timezone
-        $datetime->setTimeZone(new DateTimeZone($user_timezone));
-
-        // Return the formatted date/time string
-        return $datetime->format($format);
     }
 
     /**
@@ -289,7 +304,7 @@ class Kohana_User {
     protected function _create_cookie($cookie_lifetime = NULL)
     {
         $cookie = User_Cookie::instance();
-        $cookie->create($this->id(), $cookie_lifetime);
+        $cookie->create_cookie($this->id(), $cookie_lifetime);
     }
 
     /**
@@ -301,11 +316,10 @@ class Kohana_User {
 
         try
         {
-            $cookie->load();
-            $cookie->delete();
-
+            $cookie->load_cookie();
+            $cookie->delete_cookie();
         }
-        catch (User_Cookie_Exception $e)
+        catch (Auth_Exception $e)
         {
             // Do nothing
         }
