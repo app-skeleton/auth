@@ -11,4 +11,5 @@
 class User extends Kohana_User {
 
 }
+
 // END User

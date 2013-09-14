@@ -12,4 +12,4 @@ class User_Manager extends Kohana_User_Manager {
 
 }
 
-//END User_Manager
+// END User_Manager

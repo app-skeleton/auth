@@ -11,4 +11,5 @@
 class Identity extends Kohana_Identity {
 
 }
+
 // END Identity

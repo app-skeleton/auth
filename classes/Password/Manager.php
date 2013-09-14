@@ -12,4 +12,4 @@ class Password_Manager extends Kohana_Password_Manager {
 
 }
 
-//END Password_Manager
+// END Password_Manager
