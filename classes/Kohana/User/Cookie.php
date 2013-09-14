@@ -10,101 +10,69 @@
 
 class Kohana_User_Cookie {
 
-    // Singleton instance
+    /**
+     * @var User_Cookie             Singleton instance
+     */
     protected static $_instance;
 
-    // Config object
-    protected $_config;
+    /**
+     * @var string                  Cookie name
+     */
+    protected $_cookie_name;
 
-    // The cookie model instance
-    protected $_cookie;
+    /**
+     * @var int                     Default cookie lifetime in seconds
+     */
+    protected $_default_cookie_lifetime;
 
-    // Error constants
-    const ERROR_NONE = 0;
-    const ERROR_COOKIE_EMPTY = 1;
-    const ERROR_COOKIE_INVALID = 2;
+    /**
+     * @var Model_User_Cookie       The cookie model instance
+     */
+    protected $_cookie_model;
 
     /**
      * Construct
      */
     protected function __construct()
     {
-        $this->_config = Kohana::$config->load('auth/cookie');
+        $config = Kohana::$config->load('auth/cookie');
+        $this->_cookie_name = $config['name'];
+        $this->_default_cookie_lifetime = $config['lifetime'];
     }
 
     /**
      * Try to load the cookie
      *
-     * @throws  User_Cookie_Exception
+     * @throws  Auth_Exception
      */
-    public function load()
+    public function load_cookie()
     {
-        // Get cookie name from config
-        $cookie_name = $this->_config['name'];
+        // Get cookie value
+        $cookie_value = Cookie::get($this->_cookie_name);
 
-        // Check if cookie exists
-        if (($cookie = Cookie::get($cookie_name)) !== NULL)
+        // Check if cookie is valid
+        if ($cookie_value !== NULL)
         {
-            // Get cookie parts
-            $exp = explode('|', $cookie);
+            $cookie_model = ORM::factory('User_Cookie')
+                ->where('secure_key', '=', $cookie_value)
+                ->where('expires_on', '<', date('Y-m-d H:i:s'))
+                ->find();
 
-            if (sizeof($exp) != 2)
+            if ( ! $cookie_model->loaded())
             {
                 // Cookie is invalid (delete it)
-                Cookie::delete($cookie_name);
+                Cookie::delete($this->_cookie_name);
 
-                // Throw Exception
-                throw new User_Cookie_Exception('Invalid cookie.', array(), self::ERROR_COOKIE_INVALID);
+                throw new Auth_Exception(Auth_Exception::E_INVALID_COOKIE);
             }
-            else
-            {
-                // Check if the cookie exists in db
-                $db_cookie = ORM::factory('User_Cookie')
-                    ->where('user_id', '=', $exp[0])
-                    ->and_where('random_key', '=', $exp[1])
-                    ->find();
 
-                if ( ! $db_cookie->loaded())
-                {
-                    // Cookie doesn't exists in db (it is invalid, let's delete it)
-                    Cookie::delete($cookie_name);
-
-                    // Throw Exception
-                    throw new User_Cookie_Exception('Invalid cookie.', array(), self::ERROR_COOKIE_INVALID);
-                }
-
-                // Check if the cookie is outdated
-                if (strtotime($db_cookie->expires_on) < time())
-                {
-                    // Delete the outdated cookie
-                    Cookie::delete($cookie_name);
-
-                    // Delete the outdated cookie from db also
-                    $db_cookie->delete();
-
-                    // Throw Exception
-                    throw new User_Cookie_Exception('Invalid cookie.', array(), self::ERROR_COOKIE_INVALID);
-                }
-
-                // A valid cookie was found in db
-                $this->_cookie = $db_cookie;
-            }
+            // Cookie is valid
+            $this->_cookie_model = $cookie_model;
         }
         else
         {
-            // Throw Exception
-            throw new User_Cookie_Exception('Empty cookie.', array(), self::ERROR_COOKIE_EMPTY);
+            throw new Auth_Exception(Auth_Exception::E_INVALID_COOKIE);
         }
-    }
-
-    /**
-     * Generate a new random key
-     *
-     * @return  string
-     */
-    public function generate()
-    {
-        return Text::random('alnum', 64);
     }
 
     /**
@@ -113,79 +81,77 @@ class Kohana_User_Cookie {
      * @param   int $user_id
      * @param   int $cookie_lifetime
      */
-    public function create($user_id, $cookie_lifetime = NULL)
+    public function create_cookie($user_id, $cookie_lifetime = NULL)
     {
-        // Get cookie name from config
-        $cookie_name = $this->_config['name'];
+        // Set cookie lifetime
+        $cookie_lifetime = $cookie_lifetime ?: $this->_default_cookie_lifetime;
 
-        // Generate new random key
-        $random_key = $this->generate();
+        // Generate new secure key
+        $secure_key = Text::random('alnum', 64);
 
-        // Create cookie
+        // Create a new cookie
         Cookie::set(
-            $cookie_name,
-            $user_id.'|'.$random_key,
-            $this->cookie_lifetime($cookie_lifetime)
+            $this->_cookie_name,
+            $secure_key,
+            $cookie_lifetime
         );
 
-        // Save the new cookie to database
-        $this->_cookie = ORM::factory('User_Cookie');
-
-        $this->_cookie->user_id = $user_id;
-        $this->_cookie->random_key = $random_key;
-        $this->_cookie->expires_on = date('Y-m-d H:i:s', time() + $this->cookie_lifetime($cookie_lifetime));
-
-        $this->_cookie->save();
+        $this->_cookie_model = ORM::factory('User_Cookie')
+            ->set('user_id', $user_id)
+            ->set('secure_key', $secure_key)
+            ->set('expires_on', date('Y-m-d H:i:s', time() + $cookie_lifetime))
+            ->save();
     }
 
     /**
-     * Extend a cookie's lifetime
+     * Renew the existing cookie
      *
      * @param   int $cookie_lifetime
+     * @throws  Kohana_Exception
      */
-    public function extend($cookie_lifetime = NULL)
+    public function renew_cookie($cookie_lifetime = NULL)
     {
-        // The cookie must be loaded
-        if ($this->_cookie)
+        // Make sure cookie is loaded
+        if ( ! is_object($this->_cookie_model))
         {
-            // Get cookie name from config
-            $cookie_name = $this->_config['name'];
-
-            // Generate new random key
-            $random_key = $this->generate();
-
-            // Create cookie
-            Cookie::set(
-                $cookie_name,
-                $this->_cookie->user_id.'|'.$random_key,
-                $this->cookie_lifetime($cookie_lifetime)
-            );
-
-            // Save the new cookie to database
-            $this->_cookie->random_key = $random_key;
-            $this->_cookie->expires_on = date('Y-m-d H:i:s', time() + $this->cookie_lifetime($cookie_lifetime));
-
-            $this->_cookie->save();
+            throw new Kohana_Exception('Cookie must be loaded to be renewed.');
         }
+
+        // Set cookie lifetime
+        $cookie_lifetime = $cookie_lifetime ?: $this->_default_cookie_lifetime;
+
+        // Generate new secure key
+        $secure_key = Text::random('alnum', 64);
+
+        // Update the cookie
+        Cookie::set(
+            $this->_cookie_name,
+            $secure_key,
+            $cookie_lifetime
+        );
+
+        $this->_cookie_model
+            ->set('secure_key', $secure_key)
+            ->set('expires_on', date('Y-m-d H:i:s', time() + $cookie_lifetime))
+            ->save();
     }
 
     /**
-     * Delete the current cookie (if exists)
+     * Delete the current cookie
      */
-    public function delete()
+    public function delete_cookie()
     {
-        // The cookie must be loaded
-        if ($this->_cookie)
+        // Make sure cookie is loaded
+        if ( ! is_object($this->_cookie_model))
         {
-            // Get cookie name from config
-            $cookie_name = $this->_config['name'];
-
-            // Delete cookie
-            Cookie::delete($cookie_name);
-
-            // Delete cookie from database
-            $this->_cookie->delete();
+            throw new Kohana_Exception('Cookie must be loaded to be deleted.');
         }
+
+        // Delete cookie
+        Cookie::delete($this->_cookie_name);
+
+        // Delete cookie from database
+        $this->_cookie_model->delete();
     }
 
     /**
@@ -195,18 +161,9 @@ class Kohana_User_Cookie {
      */
     public function user_id()
     {
-        return ($this->_cookie) ? $this->_cookie->user_id: NULL;
-    }
-
-    /**
-     * Return the cookie lifetime
-     *
-     * @param   int $lifetime
-     * @return  int
-     */
-    public function cookie_lifetime($lifetime = NULL)
-    {
-        return (is_numeric($lifetime)) ? $lifetime : $this->_config['lifetime'];
+        return ($this->_cookie_model)
+            ? $this->_cookie_model->get('user_id')
+            : NULL;
     }
 
     /**
