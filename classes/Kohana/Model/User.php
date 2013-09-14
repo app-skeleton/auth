@@ -37,7 +37,6 @@ class Kohana_Model_User extends ORM {
     {
         return array(
             'first_name' => array(
-                array(array($this, 'full_name'), array(':value', ':validation')),
                 array('not_empty')
             ),
 
@@ -67,25 +66,6 @@ class Kohana_Model_User extends ORM {
     }
 
     /**
-     * Validate the full name
-     *
-     * @param   string      $value
-     * @param   Validation  $validation
-     * @return  bool
-     */
-    public function full_name($value, $validation)
-    {
-        if (empty($value))
-        {
-            // Create error manually
-            $validation->label('full_name', 'full_name');
-            $validation->error('full_name', 'not_empty');
-        }
-
-        return TRUE;
-    }
-
-    /**
      * Check if a string is a valid timezone identifier
      *
      * @param   string  $timezone_identifier
@@ -108,79 +88,35 @@ class Kohana_Model_User extends ORM {
     /**
      * Get data about a user
      *
-     * @param   int     $user_id
-     * @param   array   $columns
+     * @param   string  $field
+     * @param   mixed   $value
      * @return  array
      */
-    public function get_user_data($user_id, $columns)
+    public function get_user_data_by($field, $value)
     {
-        $columns = isset($columns)
-            ? $columns
-            : array(
-                'users.user_id',
-                'users.first_name',
-                'users.last_name',
-                'users.timezone',
-                'user_identities.username',
-                'user_identities.email',
-                'user_identities.status',
-            );
+        $columns = array(
+            'users.user_id',
+            'users.first_name',
+            'users.last_name',
+            'users.timezone',
+            'user_identities.username',
+            'user_identities.email',
+            'user_identities.status'
+        );
+
+        $table_name = in_array($column, $this->_table_columns)
+            ? 'users'
+            : 'user_identities';
+
+        $field = $table_name.'.'.$field;
 
         return DB::select_array($columns)
             ->from('users')
             ->join('user_identities')
             ->on('users.user_id', '=', 'user_identities.user_id')
-            ->on('users.user_id', '=', DB::expr($user_id))
-            ->execute()
-            ->current();
-    }
-
-    /**
-     * Get the user id by column and value
-     *
-     * @param   string  $column
-     * @param   mixed   $value
-     * @return  int
-     */
-    public function get_user_id_by($column, $value)
-    {
-        return DB::select('users.user_id')
-            ->from('users')
-            ->join('user_identities')
-            ->on('users.user_id', '=', 'user_identities.user_id')
-            ->where($column, '=', $value)
-            ->execute()
-            ->get('user_id');
-    }
-
-    /**
-     * Get data about a user by columns and value
-     *
-     * @param   string  $column
-     * @param   mixed   $value
-     * @param   array   $columns
-     * @return  array
-     */
-    public function get_user_data_by($column, $value, $columns)
-    {
-        $columns = isset($columns)
-            ? $columns
-            : array(
-                'users.user_id',
-                'users.first_name',
-                'users.last_name',
-                'users.timezone',
-                'user_identities.username',
-                'user_identities.email',
-                'user_identities.status',
-            );
-
-        return DB::select_array($columns)
-            ->from('users')
-            ->join('user_identities')
-            ->on('users.user_id', '=', 'user_identities.user_id')
-            ->on($column, '=', $value)
-            ->execute()
+            ->on($field, '=', DB::expr("'".$value."'"))
+            ->as_assoc()
+            ->execute($this->_db)
             ->current();
     }
 
