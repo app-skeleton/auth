@@ -11,23 +11,17 @@
 class Kohana_Identity {
 
     /**
-     * Username
-     *
-     * @var string
+     * @var string  Username
      */
     protected $_username;
 
     /**
-     * Password
-     *
-     * @var string
+     * @var string  Password
      */
     protected $_password;
 
     /**
-     * Whether the authentication was successful
-     *
-     * @var bool
+     * @var bool    Whether the authentication was successful
      */
     protected $_is_authenticated;
 
@@ -48,17 +42,21 @@ class Kohana_Identity {
      */
     protected $_states;
 
-    // Status constants
+    /**
+     * Status constants
+     */
     const STATUS_ACTIVE     = 'active';
     const STATUS_INACTIVE   = 'inactive';
     const STATUS_INVITED    = 'invited';
 
-    // Error code constants
-	const ERROR_USERNAME_INVALID    = 1;
-	const ERROR_PASSWORD_INVALID    = 2;
-	const ERROR_IDENTITY_EMPTY      = 3;
-    const ERROR_IDENTITY_INACTIVE   = 4;
-    const ERROR_USER_ID_INVALID     = 5;
+    /**
+     * Error code constants
+     */
+    const ERROR_USERNAME_INVALID    = 'username_invalid';
+	const ERROR_PASSWORD_INVALID    = 'password_invalid';
+	const ERROR_IDENTITY_EMPTY      = 'identity_empty';
+    const ERROR_IDENTITY_INACTIVE   = 'identity_inactive';
+    const ERROR_USER_ID_INVALID     = 'user_id_invalid';
 	
     /**
      * Construct
@@ -68,26 +66,26 @@ class Kohana_Identity {
      */
 	protected function __construct($username = NULL, $password = NULL)
 	{
-		$this->_username 		= $username;
-		$this->_password 		= $password;
-		$this->_is_authenticated = FALSE;
-		$this->_states 			= array();
+		$this->_username 		    = $username;
+		$this->_password 		    = $password;
+		$this->_is_authenticated    = FALSE;
+		$this->_states 			    = array();
 	}
 
     /**
      * Authenticate the user
      *
-     * @throws User_Identity_Exception
+     * @throws Auth_Exception
      */
 	public function authenticate()
     {
-		if ((empty($this->_username)) OR (empty($this->_password)))
+		if (empty($this->_username) OR empty($this->_password))
 		{
 			// Empty identity
             $error_code = self::ERROR_IDENTITY_EMPTY;
             $error_message = Kohana::message('auth/'.i18n::lang().'/auth', 'login.error.'.$error_code);
 
-            throw new User_Identity_Exception($error_message, array(), $error_code);
+            throw new Auth_Exception(Auth_Exception::E_INVALID_CREDENTIALS, $error_message);
 		}
 		else
 		{
@@ -99,31 +97,31 @@ class Kohana_Identity {
 						
 			if ( ! $identity->loaded())
 			{
-				// Wrong username
+				// Wrong email or username
                 $error_code = self::ERROR_USERNAME_INVALID;
                 $error_message = Kohana::message('auth/'.i18n::lang().'/auth', 'login.error.'.$error_code);
 
-                throw new User_Identity_Exception($error_message, array(), $error_code);
+                throw new Auth_Exception(Auth_Exception::E_INVALID_CREDENTIALS, $error_message);
 			}
 			else 
 			{
-                if ($identity->hash($this->_password, $identity->password) != $identity->password)
+                if ($identity->hash($this->_password, $identity->get('password')) != $identity->get('password'))
 				{
 					// Wrong password
                     $error_code = self::ERROR_PASSWORD_INVALID;
                     $error_message = Kohana::message('auth/'.i18n::lang().'/auth', 'login.error.'.$error_code);
 
-                    throw new User_Identity_Exception($error_message, array(), $error_code);
+                    throw new Auth_Exception(Auth_Exception::E_INVALID_CREDENTIALS, $error_message);
 				}
 				else 
 				{
-					if ($identity->status != self::STATUS_ACTIVE)
+					if ($identity->get('status') != self::STATUS_ACTIVE)
                     {
                         // Inactive identity
                         $error_code = self::ERROR_IDENTITY_INACTIVE;
                         $error_message = Kohana::message('auth/'.i18n::lang().'/auth', 'login.error.'.$error_code);
 
-                        throw new User_Identity_Exception($error_message, array(), $error_code);
+                        throw new Auth_Exception(Auth_Exception::E_INACTIVE_ACCOUNT, $error_message);
                     }
                     else
                     {
@@ -133,7 +131,7 @@ class Kohana_Identity {
                         // Load the user data
                         foreach ($this->_states_to_load as $key => $value)
                         {
-                            $this->set_state($key, $identity->$value);
+                            $this->set_state($key, $identity->get($value));
                         }
 
                         // The authentication was form based
@@ -152,13 +150,16 @@ class Kohana_Identity {
 		// Get the User_Cookie instance
         $cookie = User_Cookie::instance();
 
-        $cookie->load();
+        // Try to load the cookie
+        $cookie->load_cookie();
 
         // Valid login
         $this->_is_authenticated = TRUE;
 
         // Load identity
-        $identity = ORM::factory('Identity')->where('user_id', '=', $cookie->user_id())->find();
+        $identity = ORM::factory('Identity')
+            ->where('user_id', '=', $cookie->user_id())
+            ->find();
 
         // Load the user states
         foreach ($this->_states_to_load as $key => $value)
@@ -170,7 +171,7 @@ class Kohana_Identity {
         $this->set_state('__auth_with', 'cookie');
 
         // Automatically extend cookie lifetime
-        $cookie->extend();
+        $cookie->renew_cookie();
 	}
 
     /**
@@ -178,7 +179,7 @@ class Kohana_Identity {
      * !!! Use this function only is special situations
      *
      * @param   int     $user_id
-     * @throws  User_Identity_Exception
+     * @throws  Auth_Exception
      */
     public function authenticate_with_id($user_id)
     {
@@ -189,7 +190,7 @@ class Kohana_Identity {
 
         if ( ! $identity->loaded())
         {
-            throw new User_Identity_Exception('Invalid user id: '.$user_id, array(), self::ERROR_USER_ID_INVALID);
+            throw new Auth_Exception(Auth_Exception::E_RESOURCE_NOT_FOUND);
         }
 
         // Load the user data
@@ -225,7 +226,9 @@ class Kohana_Identity {
      */
 	public function get_state($key, $default = NULL)
 	{
-		return (isset($this->_states[$key])) ? $this->_states[$key] : $default;
+		return isset($this->_states[$key])
+            ? $this->_states[$key]
+            : $default;
 	}
 		
 	/**
@@ -259,7 +262,6 @@ class Kohana_Identity {
 	{
 		return new Identity($username, $password);
 	}
-			
 }
 
 // END Kohana_Identity
