@@ -190,7 +190,7 @@ class Kohana_Identity {
 
         if ( ! $identity->loaded())
         {
-            throw new Auth_Exception(Auth_Exception::E_RESOURCE_NOT_FOUND);
+            throw new Auth_Exception(Auth_Exception::E_RESOURCE_NOT_FOUND, 'Can not find the given user.');
         }
 
         // Load the user data
