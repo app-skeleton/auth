@@ -19,6 +19,7 @@ class Kohana_Auth_Exception extends Kohana_Exception {
     const E_INVALID_RECOVERY_LINK   = 34;
     const E_UNAUTHENTICATED         = 35;
     const E_AUTHENTICATED           = 36;
+    const E_USER_IS_REGISTERED      = 37;
     const E_RESOURCE_NOT_FOUND      = 11;
 
     /**
@@ -31,6 +32,7 @@ class Kohana_Auth_Exception extends Kohana_Exception {
         34  => 'This recovery link is expired on invalid.',
         35  => 'Unauthenticated users can not perform this action.',
         36  => 'Authenticated users can not perform this action.',
+        37  => 'The specified username/email is already registered.',
         11  => 'Can not find the given resource.'
     );
 
