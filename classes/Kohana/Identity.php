@@ -43,13 +43,6 @@ class Kohana_Identity {
     protected $_states;
 
     /**
-     * Status constants
-     */
-    const STATUS_ACTIVE     = 'active';
-    const STATUS_INACTIVE   = 'inactive';
-    const STATUS_INVITED    = 'invited';
-
-    /**
      * Error code constants
      */
     const ERROR_USERNAME_INVALID    = 'username_invalid';
@@ -115,7 +108,7 @@ class Kohana_Identity {
 				}
 				else 
 				{
-					if ($identity->get('status') != self::STATUS_ACTIVE)
+					if ($identity->get('status') != Model_Identity::STATUS_ACTIVE)
                     {
                         // Inactive identity
                         $error_code = self::ERROR_IDENTITY_INACTIVE;

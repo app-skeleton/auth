@@ -48,7 +48,7 @@ class Kohana_Model_Password_Recovery_Link extends ORM {
         return (bool) DB::select(array(DB::expr('COUNT("*")'), 'total_count'))
             ->from('user_identities')
             ->where('email', '=', $email)
-            ->where('status', '!=', Identity::STATUS_INVITED)
+            ->where('status', '!=', Model_Identity::STATUS_INVITED)
             ->execute($this->_db)
             ->get('total_count');
     }

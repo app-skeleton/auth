@@ -39,6 +39,13 @@ class Kohana_Model_Identity extends ORM {
     );
 
     /**
+     * Status constants
+     */
+    const STATUS_ACTIVE     = 'active';
+    const STATUS_INACTIVE   = 'inactive';
+    const STATUS_INVITED    = 'invited';
+
+    /**
      * Defines validation rules
      *
      * @return  array
@@ -106,7 +113,7 @@ class Kohana_Model_Identity extends ORM {
             ->from($this->_table_name)
             ->where('username', '=', $username)
             ->where($this->_primary_key, '!=', $this->pk())
-            ->where('status', '!=', Identity::STATUS_INVITED)
+            ->where('status', '!=', self::STATUS_INVITED)
             ->execute($this->_db)
             ->get('total_count');
     }
@@ -123,7 +130,7 @@ class Kohana_Model_Identity extends ORM {
             ->from($this->_table_name)
             ->where('email', '=', $email)
             ->where($this->_primary_key, '!=', $this->pk())
-            ->where('status', '!=', Identity::STATUS_INVITED)
+            ->where('status', '!=', self::STATUS_INVITED)
             ->execute($this->_db)
             ->get('total_count');
     }
