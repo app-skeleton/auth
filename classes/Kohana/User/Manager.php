@@ -16,18 +16,54 @@ class Kohana_User_Manager {
     protected static $_instance;
 
     /**
+     * @var string          Database config group
+     */
+    protected $_db_group = NULL;
+
+    /**
+     * @var Database        Database instance
+     */
+    protected $_db;
+
+    /**
+     * Construct
+     */
+    protected function __construct()
+    {
+        $this->_db = Database::instance($this->_db_group);
+    }
+
+    /**
      * Sign up a new user
      *
      * @param   array   $values
      * @param   bool    $transactional
      * @throws  Auth_Validation_Exception
+     * @throws  Auth_Exception
      * @throws  Exception
      * @return  array   An array containing the user and the identity model data
      */
     public function signup_user($values, $transactional = TRUE)
     {
-        $user_model = ORM::factory('User');
+        $email = Arr::get($values, 'email');
         $identity_model = ORM::factory('Identity');
+
+        // Check if a user already exists with the given email
+        if ( ! empty($email))
+        {
+            $identity_model
+                ->where('email', '=', $email)
+                ->find();
+
+            if ($identity_model->loaded() && $identity_model->get('status') != Model_Identity::STATUS_INVITED)
+            {
+                throw new Auth_Exception(Auth_Exception::E_USER_IS_REGISTERED);
+            }
+        }
+
+        $user_model = $identity_model->loaded()
+            ? ORM::factory('User', $identity_model->get('user_id'))
+            : ORM::factory('User');
 
         // Save the user
         return $this->_save_user($user_model, $identity_model, $values, $transactional);
@@ -119,7 +155,7 @@ class Kohana_User_Manager {
         // Validation passes, begin transaction
         if ($transactional)
         {
-            $user_model->begin();
+            $this->db()->begin();
         }
 
         try
@@ -131,7 +167,7 @@ class Kohana_User_Manager {
             {
                 // Setup identity
                 $identity_model->set('user_id', $user_model->pk());
-                $identity_model->set('status', Identity::STATUS_ACTIVE);
+                $identity_model->set('status', Model_Identity::STATUS_ACTIVE);
             }
 
             // Save identity
@@ -140,7 +176,7 @@ class Kohana_User_Manager {
             // Everything was going fine, commit
             if ($transactional)
             {
-                $user_model->commit();
+                $this->db()->commit();
             }
 
             return array(
@@ -153,12 +189,34 @@ class Kohana_User_Manager {
             // Something went wrong, rollback
             if ($transactional)
             {
-                $user_model->rollback();
+                $this->db()->rollback();
             }
 
             // Re-throw the exception
             throw $e;
         }
+    }
+
+    /**
+     * Check if the given username is available
+     *
+     * @param   string  $username
+     * @return  bool
+     */
+    public function username_available($username)
+    {
+        return ORM::factory('Identity')->username_available($username);
+    }
+
+    /**
+     * Check if the given email is available
+     *
+     * @param   string  $email
+     * @return  bool
+     */
+    public function email_available($email)
+    {
+        return ORM::factory('Identity')->email_available($email);
     }
 
     /**
@@ -191,6 +249,16 @@ class Kohana_User_Manager {
     {
         // Delete outdated cookies
         ORM::factory('User_Cookie')->garbage_collector(time());
+    }
+
+    /**
+     * Get the database instance
+     *
+     * @return  Database
+     */
+    public function db()
+    {
+        return $this->_db;
     }
 
     /**

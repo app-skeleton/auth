@@ -119,30 +119,6 @@ class Kohana_Model_User extends ORM {
             ->execute($this->_db)
             ->current();
     }
-
-    /**
-     * Begin a transaction
-     */
-    public function begin()
-    {
-        $this->_db->begin();
-    }
-
-    /**
-     * Commit a transaction
-     */
-    public function commit()
-    {
-        $this->_db->commit();
-    }
-
-    /**
-     * Rollback a transaction
-     */
-    public function rollback()
-    {
-        $this->_db->rollback();
-    }
 }
 
 // END Kohana_Model_User
