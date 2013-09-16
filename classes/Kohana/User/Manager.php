@@ -51,7 +51,7 @@ class Kohana_User_Manager {
 
         if ( ! $user_model->loaded())
         {
-            throw new Auth_Exception(Auth_Exception::E_RESOURCE_NOT_FOUND, 'Can not find user.');
+            throw new Auth_Exception(Auth_Exception::E_RESOURCE_NOT_FOUND, 'Can not find the given user.');
         }
 
         // Load the identity
