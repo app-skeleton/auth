@@ -17,7 +17,22 @@ class Kohana_Auth_Exception extends Kohana_Exception {
     const E_INACTIVE_ACCOUNT        = 32;
     const E_INVALID_COOKIE          = 33;
     const E_INVALID_RECOVERY_LINK   = 34;
+    const E_UNAUTHENTICATED         = 35;
+    const E_AUTHENTICATED           = 36;
     const E_RESOURCE_NOT_FOUND      = 11;
+
+    /**
+     * @var array   Default error messages
+     */
+    public static $default_error_messages = array(
+        31  => 'Invalid login credentials.',
+        32  => 'This account is inactive.',
+        33  => 'This cookie is expired or invalid.',
+        34  => 'This recovery link is expired on invalid.',
+        35  => 'Unauthenticated users can not perform this action.',
+        36  => 'Authenticated users can not perform this action.',
+        11  => 'Can not find the given resource.'
+    );
 
     /**
      * Construct
@@ -29,6 +44,11 @@ class Kohana_Auth_Exception extends Kohana_Exception {
      */
     public function __construct($code, $message = NULL, array $variables = NULL, $data = NULL)
     {
+        if ( ! isset($message) && isset(self::$default_error_messages[$code]))
+        {
+            $message = self::$default_error_messages[$code];
+        }
+
         parent::__construct($message, $variables, $code, NULL, $data);
     }
 }
