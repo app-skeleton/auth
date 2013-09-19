@@ -26,24 +26,20 @@ class Kohana_User_Manager {
     protected $_db;
 
     /**
-     * Construct
+     * @var bool            Whether to use transactions
      */
-    protected function __construct()
-    {
-        $this->_db = Database::instance($this->_db_group);
-    }
+    protected $_transactional = TRUE;
 
     /**
      * Sign up a new user
      *
      * @param   array   $values
-     * @param   bool    $transactional
      * @throws  Auth_Validation_Exception
      * @throws  Auth_Exception
      * @throws  Exception
      * @return  array   An array containing the user and the identity model data
      */
-    public function signup_user($values, $transactional = TRUE)
+    public function signup_user($values)
     {
         $email = Arr::get($values, 'email');
         $identity_model = ORM::factory('Identity');
@@ -66,7 +62,7 @@ class Kohana_User_Manager {
             : ORM::factory('User');
 
         // Save the user
-        return $this->_save_user($user_model, $identity_model, $values, $transactional);
+        return $this->_save_user($user_model, $identity_model, $values);
     }
 
     /**
@@ -74,13 +70,12 @@ class Kohana_User_Manager {
      *
      * @param   int     $user_id
      * @param   array   $values
-     * @param   bool    $transactional
      * @throws  Auth_Exception
      * @throws  Auth_Validation_Exception
      * @throws  Exception
      * @return  array   An array containing the user and the identity models data as arrays
      */
-    public function update_user($user_id, $values, $transactional = TRUE)
+    public function update_user($user_id, $values)
     {
         // Load the user
         $user_model = ORM::factory('User', $user_id);
@@ -96,7 +91,7 @@ class Kohana_User_Manager {
             ->find();
 
         // Save the user
-        return $this->_save_user($user_model, $identity_model, $values, $transactional);
+        return $this->_save_user($user_model, $identity_model, $values);
     }
 
     /**
@@ -105,12 +100,11 @@ class Kohana_User_Manager {
      * @param   ORM     $user_model
      * @param   ORM     $identity_model
      * @param   array   $values
-     * @param   bool    $transactional
      * @return  array
      * @throws  Auth_Validation_Exception
      * @throws  Exception
      */
-    protected function _save_user($user_model, $identity_model, $values, $transactional)
+    protected function _save_user($user_model, $identity_model, $values)
     {
         $user_errors = array();
         $identity_errors = array();
@@ -153,10 +147,7 @@ class Kohana_User_Manager {
         }
 
         // Validation passes, begin transaction
-        if ($transactional)
-        {
-            $this->db()->begin();
-        }
+        $this->begin_transaction();
 
         try
         {
@@ -174,10 +165,7 @@ class Kohana_User_Manager {
             $identity_model->save();
 
             // Everything was going fine, commit
-            if ($transactional)
-            {
-                $this->db()->commit();
-            }
+            $this->commit_transaction();
 
             return array(
                 'user' => $user_model->as_array(),
@@ -187,10 +175,7 @@ class Kohana_User_Manager {
         catch (Exception $e)
         {
             // Something went wrong, rollback
-            if ($transactional)
-            {
-                $this->db()->rollback();
-            }
+            $this->rollback_transaction();
 
             // Re-throw the exception
             throw $e;
@@ -252,12 +237,66 @@ class Kohana_User_Manager {
     }
 
     /**
+     * Begin a transaction
+     */
+    public function begin_transaction()
+    {
+        if ($this->transactional())
+        {
+            $this->db()->begin();
+        }
+    }
+
+    /**
+     * Commit a transaction
+     */
+    public function commit_transaction()
+    {
+        if ($this->transactional())
+        {
+            $this->db()->commit();
+        }
+    }
+
+    /**
+     * Rollback a transaction
+     */
+    public function rollback_transaction()
+    {
+        if ($this->transactional())
+        {
+            $this->db()->rollback();
+        }
+    }
+
+    /**
+     * Set/Get transactional
+     *
+     * @param   bool    $transactional
+     * @return  bool
+     */
+    public function transactional($transactional = NULL)
+    {
+        if (is_bool($transactional))
+        {
+            $this->_transactional = $transactional;
+        }
+
+        return $transactional;
+    }
+
+    /**
      * Get the database instance
      *
      * @return  Database
      */
     public function db()
     {
+        if ( ! isset($this->_db))
+        {
+            $this->_db = Database::instance($this->_db_group);
+        }
+
         return $this->_db;
     }
 
