@@ -8,18 +8,13 @@
  *
  */
 
-class Kohana_Password_Manager {
-
-    /**
-     * @var Password_Manager    Singleton instance
-     */
-    protected static $_instance;
+class Kohana_Password_Manager extends Service_Manager {
 
     /**
      * Send recovery email
      *
      * @param   string  $email
-     * @throws  Auth_Validation_Exception
+     * @throws  Validation_Exception
      */
     public function recover_password($email)
     {
@@ -58,7 +53,7 @@ class Kohana_Password_Manager {
         catch (ORM_Validation_Exception $e)
         {
             $errors = $e->errors('models/'.i18n::lang().'/auth', FALSE);
-            throw new Auth_Validation_Exception($errors);
+            throw new Validation_Exception($errors);
         }
     }
 
@@ -88,7 +83,7 @@ class Kohana_Password_Manager {
      * @param   string  $password
      * @param   string  $password_confirm
      * @throws  Auth_Exception
-     * @throws  Auth_Validation_Exception
+     * @throws  Validation_Exception
      */
     public function reset_password($secure_key, $password, $password_confirm)
     {
@@ -127,7 +122,7 @@ class Kohana_Password_Manager {
         catch (ORM_Validation_Exception $e)
         {
             $errors = $e->errors('models/'.i18n::lang().'/auth', FALSE);
-            throw new Auth_Validation_Exception($errors['_external']);
+            throw new Validation_Exception($errors['_external']);
         }
 
         // Delete all password recovery links for this user
@@ -141,21 +136,6 @@ class Kohana_Password_Manager {
     {
         // Delete outdated password recovery links
         ORM::factory('Password_Recovery_Link')->garbage_collector(time());
-    }
-
-    /**
-     * Returns a singleton instance of the class.
-     *
-     * @return  Password_Manager
-     */
-    public static function instance()
-    {
-        if ( ! Password_Manager::$_instance instanceof Password_Manager)
-        {
-            Password_Manager::$_instance = new Password_Manager();
-        }
-
-        return Password_Manager::$_instance;
     }
 }
 

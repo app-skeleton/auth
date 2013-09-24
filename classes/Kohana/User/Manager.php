@@ -8,33 +8,13 @@
  *
  */
 
-class Kohana_User_Manager {
-
-    /**
-     * @var User_Manager    Singleton instance
-     */
-    protected static $_instance;
-
-    /**
-     * @var string          Database config group
-     */
-    protected $_db_group = NULL;
-
-    /**
-     * @var Database        Database instance
-     */
-    protected $_db;
-
-    /**
-     * @var bool            Whether to use transactions
-     */
-    protected $_transactional = TRUE;
+class Kohana_User_Manager extends Service_Manager {
 
     /**
      * Sign up a new user
      *
      * @param   array   $values
-     * @throws  Auth_Validation_Exception
+     * @throws  Validation_Exception
      * @throws  Auth_Exception
      * @throws  Exception
      * @return  array   An array containing the user and the identity model data
@@ -70,8 +50,8 @@ class Kohana_User_Manager {
      *
      * @param   int     $user_id
      * @param   array   $values
-     * @throws  Auth_Exception
-     * @throws  Auth_Validation_Exception
+     * @throws  Kohana_Exception
+     * @throws  Validation_Exception
      * @throws  Exception
      * @return  array   An array containing the user and the identity models data as arrays
      */
@@ -82,7 +62,10 @@ class Kohana_User_Manager {
 
         if ( ! $user_model->loaded())
         {
-            throw new Auth_Exception(Auth_Exception::E_RESOURCE_NOT_FOUND, 'Can not find the given user.');
+            throw new Kohana_Exception(
+                'Can not find the user with id :user_id.', array(
+                ':user_id' => $user_id
+            ), Kohana_Exception::E_RESOURCE_NOT_FOUND);
         }
 
         // Load the identity
@@ -101,7 +84,7 @@ class Kohana_User_Manager {
      * @param   ORM     $identity_model
      * @param   array   $values
      * @return  array
-     * @throws  Auth_Validation_Exception
+     * @throws  Validation_Exception
      * @throws  Exception
      */
     protected function _save_user($user_model, $identity_model, $values)
@@ -143,7 +126,7 @@ class Kohana_User_Manager {
         // If validation fails, throw an exception
         if ( ! empty($errors))
         {
-            throw new Auth_Validation_Exception($errors);
+            throw new Validation_Exception($errors);
         }
 
         // Validation passes, begin transaction
@@ -234,85 +217,6 @@ class Kohana_User_Manager {
     {
         // Delete outdated cookies
         ORM::factory('User_Cookie')->garbage_collector(time());
-    }
-
-    /**
-     * Begin a transaction
-     */
-    public function begin_transaction()
-    {
-        if ($this->transactional())
-        {
-            $this->db()->begin();
-        }
-    }
-
-    /**
-     * Commit a transaction
-     */
-    public function commit_transaction()
-    {
-        if ($this->transactional())
-        {
-            $this->db()->commit();
-        }
-    }
-
-    /**
-     * Rollback a transaction
-     */
-    public function rollback_transaction()
-    {
-        if ($this->transactional())
-        {
-            $this->db()->rollback();
-        }
-    }
-
-    /**
-     * Set/Get transactional
-     *
-     * @param   bool    $transactional
-     * @return  bool
-     */
-    public function transactional($transactional = NULL)
-    {
-        if (is_bool($transactional))
-        {
-            $this->_transactional = $transactional;
-        }
-
-        return $transactional;
-    }
-
-    /**
-     * Get the database instance
-     *
-     * @return  Database
-     */
-    public function db()
-    {
-        if ( ! isset($this->_db))
-        {
-            $this->_db = Database::instance($this->_db_group);
-        }
-
-        return $this->_db;
-    }
-
-    /**
-     * Returns a singleton instance of the class.
-     *
-     * @return	User_Manager
-     */
-    public static function instance()
-    {
-        if ( ! User_Manager::$_instance instanceof User_Manager)
-        {
-            User_Manager::$_instance = new User_Manager();
-        }
-
-        return User_Manager::$_instance;
     }
 }
 
