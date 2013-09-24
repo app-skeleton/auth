@@ -172,7 +172,7 @@ class Kohana_Identity {
      * !!! Use this function only is special situations
      *
      * @param   int     $user_id
-     * @throws  Auth_Exception
+     * @throws  Kohana_Exception
      */
     public function authenticate_with_id($user_id)
     {
@@ -183,7 +183,10 @@ class Kohana_Identity {
 
         if ( ! $identity->loaded())
         {
-            throw new Auth_Exception(Auth_Exception::E_RESOURCE_NOT_FOUND, 'Can not find the given user.');
+            throw new Kohana_Exception(
+                'Can not find the user with id :user_id.', array(
+                    ':user_id' => $user_id
+                ), Kohana_Exception::E_RESOURCE_NOT_FOUND);
         }
 
         // Load the user data
