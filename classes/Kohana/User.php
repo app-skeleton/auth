@@ -58,6 +58,9 @@ class Kohana_User {
 	{
 		$this->_identity = $identity;
 
+        // Clear previous states (if any)
+        $this->clear_states();
+
 		// Copy identity states in user states
 		foreach ($this->_identity->get_states() as $key => $value)
 		{
@@ -70,7 +73,10 @@ class Kohana_User {
 
         if ($create_cookie)
         {
-            // Create "remember me" cookie
+            // Delete the previous cookie
+            $this->_delete_cookie();
+
+            // Create new cookie
             $this->_create_cookie($cookie_lifetime);
         }
 	}
@@ -97,7 +103,7 @@ class Kohana_User {
      */
 	public function logged_in()
 	{
-		return $this->get_state('__id') !== NULL;
+		return $this->get_state('user_id') !== NULL;
 	}
 
     /**
@@ -110,10 +116,10 @@ class Kohana_User {
 	{
 		if ( ! empty($username))
         {
-            $this->set_state('__username', $username);
+            $this->set_state('username', $username);
         }
 
-        return $this->get_state('__username');
+        return $this->get_state('username');
 	}
 
     /**
@@ -173,7 +179,7 @@ class Kohana_User {
      */
 	public function id()
 	{
-        return $this->get_state('__id');
+        return $this->get_state('user_id');
 	}
 
     /**
@@ -184,7 +190,7 @@ class Kohana_User {
      */
     public function authenticated_with($auth_with = NULL)
     {
-        if ($auth_with)
+        if ( ! empty($auth_with))
         {
             $this->set_state('__auth_with', $auth_with);
         }
@@ -271,7 +277,7 @@ class Kohana_User {
      */
     public function states_to_load($states = NULL)
     {
-        if ($states)
+        if ( ! empty($states))
         {
             $this->_states_to_load = $states;
         }
