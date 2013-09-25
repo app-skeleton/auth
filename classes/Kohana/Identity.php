@@ -31,8 +31,8 @@ class Kohana_Identity {
      * @var array
      */
     protected $_states_to_load = array(
-        '__username'    => 'username',
-        '__id'          => 'user_id'
+        'user_id',
+        'username',
     );
 
     /**
@@ -78,7 +78,7 @@ class Kohana_Identity {
             $error_code = self::ERROR_IDENTITY_EMPTY;
             $error_message = Kohana::message('auth/'.i18n::lang().'/auth', 'login.error.'.$error_code);
 
-            throw new Auth_Exception(Auth_Exception::E_INVALID_CREDENTIALS, $error_message);
+            throw new Auth_Exception(Auth_Exception::E_INVALID_CREDENTIALS, $error_message, NULL, array($error_code));
 		}
 		else
 		{
@@ -94,7 +94,7 @@ class Kohana_Identity {
                 $error_code = self::ERROR_USERNAME_INVALID;
                 $error_message = Kohana::message('auth/'.i18n::lang().'/auth', 'login.error.'.$error_code);
 
-                throw new Auth_Exception(Auth_Exception::E_INVALID_CREDENTIALS, $error_message);
+                throw new Auth_Exception(Auth_Exception::E_INVALID_CREDENTIALS, $error_message, NULL, array($error_code));
 			}
 			else 
 			{
@@ -104,7 +104,7 @@ class Kohana_Identity {
                     $error_code = self::ERROR_PASSWORD_INVALID;
                     $error_message = Kohana::message('auth/'.i18n::lang().'/auth', 'login.error.'.$error_code);
 
-                    throw new Auth_Exception(Auth_Exception::E_INVALID_CREDENTIALS, $error_message);
+                    throw new Auth_Exception(Auth_Exception::E_INVALID_CREDENTIALS, $error_message, NULL, array($error_code));
 				}
 				else 
 				{
@@ -114,7 +114,7 @@ class Kohana_Identity {
                         $error_code = self::ERROR_IDENTITY_INACTIVE;
                         $error_message = Kohana::message('auth/'.i18n::lang().'/auth', 'login.error.'.$error_code);
 
-                        throw new Auth_Exception(Auth_Exception::E_INACTIVE_ACCOUNT, $error_message);
+                        throw new Auth_Exception(Auth_Exception::E_INVALID_CREDENTIALS, $error_message, NULL, array($error_code));
                     }
                     else
                     {
@@ -122,9 +122,9 @@ class Kohana_Identity {
                         $this->_is_authenticated = TRUE;
 
                         // Load the user data
-                        foreach ($this->_states_to_load as $key => $value)
+                        foreach ($this->_states_to_load as $key)
                         {
-                            $this->set_state($key, $identity->get($value));
+                            $this->set_state($key, $identity->get($key));
                         }
 
                         // The authentication was form based
@@ -155,9 +155,9 @@ class Kohana_Identity {
             ->find();
 
         // Load the user states
-        foreach ($this->_states_to_load as $key => $value)
+        foreach ($this->_states_to_load as $key)
         {
-            $this->set_state($key, $identity->$value);
+            $this->set_state($key, $identity->get($key));
         }
 
         // The authentication was cookie based
@@ -190,9 +190,9 @@ class Kohana_Identity {
         }
 
         // Load the user data
-        foreach ($this->_states_to_load as $key => $value)
+        foreach ($this->_states_to_load as $key)
         {
-            $this->set_state($key, $identity->$value);
+            $this->set_state($key, $identity->get($key));
         }
 
         // The authentication was id based
@@ -244,7 +244,7 @@ class Kohana_Identity {
      */
     public function id()
     {
-        return $this->get_state('__id');
+        return $this->get_state('user_id');
     }
 
     /**
