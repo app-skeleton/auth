@@ -1,6 +1,5 @@
 <?php defined('SYSPATH') or die('No direct script access.');
-return
-array(
+return array(
     'password' => array(
         'not_empty'      => 'You can&#39;t leave password empty.',
         'min_length'     => 'Password must be at least 6 characters long.',
@@ -11,4 +10,3 @@ array(
         'matches'   => 'These passwords don&#39;t match.',
     ),
 );
-

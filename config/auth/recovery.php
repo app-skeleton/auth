@@ -1,4 +1,5 @@
 <?php defined('SYSPATH') OR die('No direct access allowed.');
+
 return array(
     // Recovery email
     'email' => array(
@@ -11,7 +12,7 @@ return array(
 
     // Recovery link
     'link' => array(
-        'lifetime' => 3600 *24,
+        'lifetime' => 3600 * 24,
         'url' => URL::map('auth.reset').'/'
     )
 );
