@@ -10,7 +10,7 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 
--- Dumping structure for table sketchsim.password_recovery_links
+-- Dumping structure for table password_recovery_links
 DROP TABLE IF EXISTS `password_recovery_links`;
 CREATE TABLE IF NOT EXISTS `password_recovery_links` (
   `link_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS `password_recovery_links` (
 -- Data exporting was unselected.
 
 
--- Dumping structure for table sketchsim.users
+-- Dumping structure for table users
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE IF NOT EXISTS `users` (
   `user_id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 -- Data exporting was unselected.
 
 
--- Dumping structure for table sketchsim.user_cookies
+-- Dumping structure for table user_cookies
 DROP TABLE IF EXISTS `user_cookies`;
 CREATE TABLE IF NOT EXISTS `user_cookies` (
   `cookie_id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
@@ -56,18 +56,16 @@ CREATE TABLE IF NOT EXISTS `user_cookies` (
 -- Data exporting was unselected.
 
 
--- Dumping structure for table sketchsim.user_identities
+-- Dumping structure for table user_identities
 DROP TABLE IF EXISTS `user_identities`;
 CREATE TABLE IF NOT EXISTS `user_identities` (
   `identity_id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
   `user_id` mediumint(8) unsigned NOT NULL,
-  `username` varchar(32) DEFAULT NULL,
-  `password` varchar(64) DEFAULT NULL,
   `email` varchar(64) NOT NULL,
-  `status` enum('active','inactive','invited') NOT NULL,
+  `password` varchar(64) DEFAULT NULL,
+  `status` enum('ACTIVE','INACTIVE','INVITED') NOT NULL,
   PRIMARY KEY (`identity_id`),
   UNIQUE KEY `email` (`email`),
-  UNIQUE KEY `username` (`username`),
   KEY `FK_user_identities__user_id` (`user_id`),
   CONSTRAINT `FK_user_identitites__user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
