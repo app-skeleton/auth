@@ -72,18 +72,19 @@ class Kohana_Password_Manager extends Service_Manager {
 
         if ( ! $link_model->loaded())
         {
-            throw new Auth_Exception(Auth_Exception::E_RECOVERY_LINK_INVALID);
+            throw new Auth_Exception(Auth_Exception::E_INVALID_RECOVERY_LINK);
         }
     }
 
     /**
-     * Reset password
+     * Reset password and return the email associated with the given secure key
      *
      * @param   string  $secure_key
      * @param   string  $password
      * @param   string  $password_confirm
      * @throws  Auth_Exception
      * @throws  Validation_Exception
+     * @return  string
      */
     public function reset_password($secure_key, $password, $password_confirm)
     {
@@ -94,7 +95,7 @@ class Kohana_Password_Manager extends Service_Manager {
 
         if ( ! $link_model->loaded())
         {
-            throw new Auth_Exception(Auth_Exception::E_RECOVERY_LINK_INVALID);
+            throw new Auth_Exception(Auth_Exception::E_INVALID_RECOVERY_LINK);
         }
 
         // Get the email
@@ -127,6 +128,8 @@ class Kohana_Password_Manager extends Service_Manager {
 
         // Delete all password recovery links for this user
         $link_model->delete_all($email);
+
+        return $email;
     }
 
     /**
