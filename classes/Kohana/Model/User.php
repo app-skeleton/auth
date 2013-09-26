@@ -99,12 +99,11 @@ class Kohana_Model_User extends ORM {
             'users.first_name',
             'users.last_name',
             'users.timezone',
-            'user_identities.username',
             'user_identities.email',
             'user_identities.status'
         );
 
-        $table_name = in_array($column, $this->_table_columns)
+        $table_name = in_array($field, $this->_table_columns)
             ? 'users'
             : 'user_identities';
 

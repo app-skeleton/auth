@@ -31,7 +31,7 @@ class Kohana_Auth_Exception extends Kohana_Exception {
         34  => 'This recovery link is expired on invalid.',
         35  => 'Unauthenticated users can not perform this action.',
         36  => 'Authenticated users can not perform this action.',
-        37  => 'The specified username/email is already registered.'
+        37  => 'The specified email is already registered.'
     );
 
     /**

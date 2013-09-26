@@ -100,7 +100,7 @@ class Kohana_User_Manager extends Service_Manager {
         }
         catch (ORM_Validation_Exception $e)
         {
-            $user_errors = $e->errors('models/'.i18n::lang().'/user', FALSE);
+            $user_errors = $e->errors('models/'.i18n::lang().'/auth', FALSE);
         }
 
         try
@@ -111,7 +111,7 @@ class Kohana_User_Manager extends Service_Manager {
         }
         catch (ORM_Validation_Exception $e)
         {
-            $identity_errors = $e->errors('models/'.i18n::lang().'/user', FALSE);
+            $identity_errors = $e->errors('models/'.i18n::lang().'/auth', FALSE);
             if (isset($identity_errors['_external']))
             {
                 $identity_external_errors = $identity_errors['_external'];
@@ -139,10 +139,12 @@ class Kohana_User_Manager extends Service_Manager {
 
             if ( ! $identity_model->loaded())
             {
-                // Setup identity
+                // Link the identity to the user
                 $identity_model->set('user_id', $user_model->pk());
-                $identity_model->set('status', Model_Identity::STATUS_ACTIVE);
             }
+
+            // Make the identity active
+            $identity_model->set('status', Model_Identity::STATUS_ACTIVE);
 
             // Save identity
             $identity_model->save();
@@ -163,17 +165,6 @@ class Kohana_User_Manager extends Service_Manager {
             // Re-throw the exception
             throw $e;
         }
-    }
-
-    /**
-     * Check if the given username is available
-     *
-     * @param   string  $username
-     * @return  bool
-     */
-    public function username_available($username)
-    {
-        return ORM::factory('Identity')->username_available($username);
     }
 
     /**
@@ -201,7 +192,7 @@ class Kohana_User_Manager extends Service_Manager {
     /**
      * Get the user id by column and value
      *
-     * @param   string  $column     Possible values: user_id, username, email
+     * @param   string  $column     Possible values: user_id, email
      * @param   mixed   $value
      * @return  int
      */

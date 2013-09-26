@@ -17,9 +17,8 @@ class Kohana_Model_Identity extends ORM {
     protected $_table_columns = array(
         'identity_id' => array(),
         'user_id' => array(),
-        'username' => array(),
-        'password' => array(),
         'email' => array(),
+        'password' => array(),
         'status' => array()
     );
 
@@ -30,20 +29,12 @@ class Kohana_Model_Identity extends ORM {
         )
     );
 
-    // Array of reserved words, users can't choose as username
-    protected $_reserved = array(
-        'guest',
-        'administrator',
-        'admin',
-        'user'
-    );
-
     /**
      * Status constants
      */
-    const STATUS_ACTIVE     = 'active';
-    const STATUS_INACTIVE   = 'inactive';
-    const STATUS_INVITED    = 'invited';
+    const STATUS_ACTIVE     = 'ACTIVE';
+    const STATUS_INACTIVE   = 'INACTIVE';
+    const STATUS_INVITED    = 'INVITED';
 
     /**
      * Defines validation rules
@@ -53,14 +44,6 @@ class Kohana_Model_Identity extends ORM {
     public function rules()
     {
         return array(
-            'username' => array(
-                array('not_empty'),
-                array('min_length', array(':value', 4)),
-                array('max_length', array(':value', 32)),
-                array('regex', array(':value', '/^[A-Za-z0-9.]+$/')),
-                array(array($this, 'username_available'), array(':value')),
-                array(array($this, 'not_reserved'), array(':value')),
-            ),
             'email' => array(
                 array('not_empty'),
                 array('email'),
@@ -77,14 +60,11 @@ class Kohana_Model_Identity extends ORM {
     public function filters()
     {
         return array(
-            'username' => array(
+            'email' => array(
                 array('trim')
             ),
             'password' => array(
                 array(array($this, 'hash'))
-            ),
-            'email' => array(
-                array('trim')
             )
         );
     }
@@ -102,23 +82,6 @@ class Kohana_Model_Identity extends ORM {
     }
 
     /**
-     * Check if the given username is available
-     *
-     * @param   string  $username
-     * @return  bool
-     */
-    public function username_available($username)
-    {
-        return ! (bool) DB::select(array(DB::expr('COUNT("*")'), 'total_count'))
-            ->from($this->_table_name)
-            ->where('username', '=', $username)
-            ->where($this->_primary_key, '!=', $this->pk())
-            ->where('status', '!=', self::STATUS_INVITED)
-            ->execute($this->_db)
-            ->get('total_count');
-    }
-
-    /**
      * Check if the given email is available
      *
      * @param   string  $email
@@ -133,17 +96,6 @@ class Kohana_Model_Identity extends ORM {
             ->where('status', '!=', self::STATUS_INVITED)
             ->execute($this->_db)
             ->get('total_count');
-    }
-
-    /**
-     * Check if a given word is not a reserved one, and it can be used as username
-     *
-     * @param   string  $word
-     * @return  bool
-     */
-    public function not_reserved($word)
-    {
-        return ( ! in_array(strtolower($word), $this->_reserved) OR ($this->loaded())) AND (in_array($this->get('username'), $this->_reserved));
     }
 
     /**

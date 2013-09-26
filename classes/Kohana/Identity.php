@@ -11,9 +11,9 @@
 class Kohana_Identity {
 
     /**
-     * @var string  Username
+     * @var string  Email
      */
-    protected $_username;
+    protected $_email;
 
     /**
      * @var string  Password
@@ -31,8 +31,7 @@ class Kohana_Identity {
      * @var array
      */
     protected $_states_to_load = array(
-        'user_id',
-        'username',
+        'user_id'
     );
 
     /**
@@ -45,21 +44,22 @@ class Kohana_Identity {
     /**
      * Error code constants
      */
-    const ERROR_USERNAME_INVALID    = 'username_invalid';
+    const ERROR_EMAIL_EMPTY         = 'email_empty';
+    const ERROR_PASSWORD_EMPTY      = 'password_empty';
+    const ERROR_EMAIL_INVALID       = 'email_invalid';
 	const ERROR_PASSWORD_INVALID    = 'password_invalid';
-	const ERROR_IDENTITY_EMPTY      = 'identity_empty';
     const ERROR_IDENTITY_INACTIVE   = 'identity_inactive';
     const ERROR_USER_ID_INVALID     = 'user_id_invalid';
 	
     /**
      * Construct
      *
-     * @param   string  $username
+     * @param   string  $email
      * @param   string  $password
      */
-	protected function __construct($username = NULL, $password = NULL)
+	protected function __construct($email = NULL, $password = NULL)
 	{
-		$this->_username 		    = $username;
+		$this->_email 		        = $email;
 		$this->_password 		    = $password;
 		$this->_is_authenticated    = FALSE;
 		$this->_states 			    = array();
@@ -68,53 +68,56 @@ class Kohana_Identity {
     /**
      * Authenticate the user
      *
-     * @throws Auth_Exception
+     * @throws  Auth_Exception
+     * @return  Identity
      */
 	public function authenticate()
     {
-		if (empty($this->_username) OR empty($this->_password))
+		if (empty($this->_email))
 		{
-			// Empty identity
-            $error_code = self::ERROR_IDENTITY_EMPTY;
-            $error_message = Kohana::message('auth/'.i18n::lang().'/auth', 'login.error.'.$error_code);
+			// Email is empty
+            $error_message = Kohana::message('auth/'.i18n::lang().'/auth', 'login.error.'.self::ERROR_EMAIL_EMPTY);
 
-            throw new Auth_Exception(Auth_Exception::E_INVALID_CREDENTIALS, $error_message, NULL, array($error_code));
+            throw new Auth_Exception(Auth_Exception::E_INVALID_CREDENTIALS, $error_message, NULL, array(self::ERROR_EMAIL_EMPTY));
 		}
+        elseif (empty($this->_password))
+        {
+            // Password is empty
+            $error_message = Kohana::message('auth/'.i18n::lang().'/auth', 'login.error.'.self::ERROR_PASSWORD_EMPTY);
+
+            throw new Auth_Exception(Auth_Exception::E_INVALID_CREDENTIALS, $error_message, NULL, array(self::ERROR_PASSWORD_EMPTY));
+        }
 		else
 		{
-            // Find identity by username or email
+            // Find identity by email
             $identity = ORM::factory('Identity')
-                ->where('username', '=', $this->_username)
-                ->or_where('email', '=', $this->_username)
+                ->where('email', '=', $this->_email)
                 ->find();
 						
 			if ( ! $identity->loaded())
 			{
-				// Wrong email or username
-                $error_code = self::ERROR_USERNAME_INVALID;
-                $error_message = Kohana::message('auth/'.i18n::lang().'/auth', 'login.error.'.$error_code);
+				// Wrong email
+                $error_message = Kohana::message('auth/'.i18n::lang().'/auth', 'login.error.'.self::ERROR_EMAIL_INVALID);
 
-                throw new Auth_Exception(Auth_Exception::E_INVALID_CREDENTIALS, $error_message, NULL, array($error_code));
+                throw new Auth_Exception(Auth_Exception::E_INVALID_CREDENTIALS, $error_message, NULL, array(self::ERROR_EMAIL_INVALID));
 			}
 			else 
 			{
                 if ($identity->hash($this->_password, $identity->get('password')) != $identity->get('password'))
 				{
 					// Wrong password
-                    $error_code = self::ERROR_PASSWORD_INVALID;
-                    $error_message = Kohana::message('auth/'.i18n::lang().'/auth', 'login.error.'.$error_code);
+                    $error_message = Kohana::message('auth/'.i18n::lang().'/auth', 'login.error.'.self::ERROR_PASSWORD_INVALID);
 
-                    throw new Auth_Exception(Auth_Exception::E_INVALID_CREDENTIALS, $error_message, NULL, array($error_code));
+                    throw new Auth_Exception(Auth_Exception::E_INVALID_CREDENTIALS, $error_message, NULL, array(self::ERROR_PASSWORD_INVALID));
 				}
 				else 
 				{
 					if ($identity->get('status') != Model_Identity::STATUS_ACTIVE)
                     {
                         // Inactive identity
-                        $error_code = self::ERROR_IDENTITY_INACTIVE;
-                        $error_message = Kohana::message('auth/'.i18n::lang().'/auth', 'login.error.'.$error_code);
+                        $error_message = Kohana::message('auth/'.i18n::lang().'/auth', 'login.error.'.self::ERROR_IDENTITY_INACTIVE);
 
-                        throw new Auth_Exception(Auth_Exception::E_INVALID_CREDENTIALS, $error_message, NULL, array($error_code));
+                        throw new Auth_Exception(Auth_Exception::E_INVALID_CREDENTIALS, $error_message, NULL, array(self::ERROR_IDENTITY_INACTIVE));
                     }
                     else
                     {
@@ -133,10 +136,14 @@ class Kohana_Identity {
 				}
 			}
 		}
+
+        return $this;
 	}
 
     /**
      * Authenticate the user based on cookie.
+     *
+     * @return  Identity
      */
 	public function authenticate_with_cookie() 
 	{		
@@ -165,6 +172,8 @@ class Kohana_Identity {
 
         // Automatically extend cookie lifetime
         $cookie->renew_cookie();
+
+        return $this;
 	}
 
     /**
@@ -173,6 +182,7 @@ class Kohana_Identity {
      *
      * @param   int     $user_id
      * @throws  Kohana_Exception
+     * @return  Identity
      */
     public function authenticate_with_id($user_id)
     {
@@ -197,6 +207,8 @@ class Kohana_Identity {
 
         // The authentication was id based
         $this->set_state('__auth_with', 'id');
+
+        return $this;
     }
 	
 	/**
@@ -250,13 +262,13 @@ class Kohana_Identity {
     /**
      * Returns an instance of the class.
      *
-     * @param   string  $username
+     * @param   string  $email
      * @param   string  $password
      * @return  Identity
      */
-	public static function factory($username = NULL, $password = NULL)
+	public static function factory($email = NULL, $password = NULL)
 	{
-		return new Identity($username, $password);
+		return new Identity($email, $password);
 	}
 }
 

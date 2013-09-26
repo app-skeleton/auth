@@ -1,15 +1,5 @@
 <?php defined('SYSPATH') or die('No direct script access.');
-return
-array(
-    'username'  => array(
-        'not_empty'             => 'Provide a username.',
-        'min_length'            => 'Username must be at least 4 characters long.',
-        'max_length'            => 'Username must be at most 32 characters long.',
-        'regex'                 => 'Username must contain only letters, numbers and periods.',
-        'username_available'    => 'This username is already registered.',
-        'not_reserved'          => 'This username is reserved.',
-    ),
-
+return array(
     'email' => array(
         'not_empty'         => 'Provide your email address.',
         'email'             => 'Please provide a valid email address.',
@@ -28,4 +18,3 @@ array(
         ),
     )
 );
-

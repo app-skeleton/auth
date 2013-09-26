@@ -53,6 +53,7 @@ class Kohana_User {
      * @param   Identity    $identity
      * @param   bool        $create_cookie
      * @param   int         $cookie_lifetime
+     * @return  User
      */
 	public function login(Identity $identity, $create_cookie = FALSE, $cookie_lifetime = NULL)
 	{
@@ -79,10 +80,14 @@ class Kohana_User {
             // Create new cookie
             $this->_create_cookie($cookie_lifetime);
         }
+
+        return $this;
 	}
 
     /**
      * Log out the user.
+     *
+     * @return  User
      */
 	public function logout()
 	{
@@ -94,6 +99,8 @@ class Kohana_User {
             // Delete "remember me" cookie if exists
             $this->_delete_cookie();
         }
+
+        return $this;
 	}
 
 	/**
@@ -107,19 +114,19 @@ class Kohana_User {
 	}
 
     /**
-     * Get/Set the unique name (username) for the user
+     * Get/Set user's email
      *
-     * @param   string  $username
+     * @param   string  $email
      * @return  string
      */
-	public function username($username = NULL)
+	public function email($email = NULL)
 	{
-		if ( ! empty($username))
+		if ( ! empty($email))
         {
-            $this->set_state('username', $username);
+            $this->set_state('email', $email);
         }
 
-        return $this->get_state('username');
+        return $this->get_state('email');
 	}
 
     /**
@@ -203,6 +210,7 @@ class Kohana_User {
      *
      * @param   string  $key
      * @param   mixed   $value
+     * @return  User
      */
 	public function set_state($key, $value)
 	{
@@ -214,6 +222,8 @@ class Kohana_User {
 
 		// Write states back to session
 		$this->_session->set($this->_session_key, $user_data);
+
+        return $this;
 	}
 
 	/**
@@ -236,6 +246,7 @@ class Kohana_User {
      * Delete a user state.
 	 *
 	 * @param   $key
+     * @return  User
      */
 	public function delete_state($key)
 	{
@@ -247,6 +258,8 @@ class Kohana_User {
 
 		// Write states back to session
 		$this->_session->set($this->_session_key, $user_data);
+
+        return $this;
 	}
 
 	/**
@@ -261,10 +274,14 @@ class Kohana_User {
 
 	/**
      * Clear user states
+     *
+     * @return  User
      */
 	public function clear_states()
 	{
 		$this->_session->set($this->_session_key, array());
+
+        return $this;
 	}
 
     /**

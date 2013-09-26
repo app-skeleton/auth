@@ -44,7 +44,6 @@ The list of the main classes and their API:
 - login
 - logout
 - logged_in
-- username
 - full_name
 - timezone
 - datetime
