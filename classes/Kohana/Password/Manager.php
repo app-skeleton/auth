@@ -14,9 +14,10 @@ class Kohana_Password_Manager extends Service_Manager {
      * Send recovery email
      *
      * @param   string  $email
+     * @param   string  $reset_url
      * @throws  Validation_Exception
      */
-    public function recover_password($email)
+    public function recover_password($email, $reset_url)
     {
         // Load config
         $config = Kohana::$config->load('auth/recovery');
@@ -24,7 +25,7 @@ class Kohana_Password_Manager extends Service_Manager {
         try
         {
             // Generate secure key
-            $secure_key = Text::random('alnum', 64);
+            $secure_key = Text::random('alnum', 32);
 
             // Create a password recovery link
             ORM::factory('Password_Recovery_Link')
@@ -43,7 +44,7 @@ class Kohana_Password_Manager extends Service_Manager {
                     'last_name' => $user_data['last_name'],
                     'email' => $email
                 ),
-                'url' => URL::map('auth.reset', array($secure_key))
+                'url' => $reset_url.$secure_key
             );
 
             // Send the recovery email

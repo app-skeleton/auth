@@ -14,7 +14,7 @@
 DROP TABLE IF EXISTS `password_recovery_links`;
 CREATE TABLE IF NOT EXISTS `password_recovery_links` (
   `link_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `secure_key` varchar(64) NOT NULL,
+  `secure_key` varchar(32) NOT NULL,
   `email` varchar(128) NOT NULL,
   `expires_on` datetime NOT NULL,
   PRIMARY KEY (`link_id`),

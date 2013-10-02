@@ -12,7 +12,6 @@ return array(
 
     // Recovery link
     'link' => array(
-        'lifetime' => 3600 * 24,
-        'url' => URL::map('auth.reset').'/'
+        'lifetime' => 3600 * 24
     )
 );
