@@ -94,8 +94,10 @@ class Kohana_User_Manager extends Service_Manager {
 
         try
         {
-            // Validate the user
+            // Set user values
             $user_model->values($values);
+
+            // Validate the user
             $user_model->check();
         }
         catch (ORM_Validation_Exception $e)
@@ -103,11 +105,18 @@ class Kohana_User_Manager extends Service_Manager {
             $user_errors = $e->errors('models/'.i18n::lang().'/auth', FALSE);
         }
 
+        // Password validation is only needed on signup, or if password provided
+        $password_validation =  ! $identity_model->loaded() || ! empty($values['password']) || ! empty($values['password_validation'])
+            ? $identity_model->get_password_validation($values)
+            : NULL;
+
         try
         {
-            // Validate the identity
+            // Set identity values
             $identity_model->values($values);
-            $identity_model->check($identity_model->get_password_validation($values));
+
+            // Validate the identity
+            $identity_model->check($password_validation);
         }
         catch (ORM_Validation_Exception $e)
         {
