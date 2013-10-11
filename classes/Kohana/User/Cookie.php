@@ -55,7 +55,7 @@ class Kohana_User_Cookie {
         {
             $cookie_model = ORM::factory('User_Cookie')
                 ->where('secure_key', '=', $cookie_value)
-                ->where('expires_on', '<', date('Y-m-d H:i:s'))
+                ->where('expires_on', '>', date('Y-m-d H:i:s'))
                 ->find();
 
             if ( ! $cookie_model->loaded())
