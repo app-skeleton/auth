@@ -11,6 +11,13 @@
 class Kohana_Password_Manager extends Service_Manager {
 
     /**
+     * Singleton instance
+     *
+     * @var Password_Manager   Singleton instance of the Password Manager
+     */
+    protected static $_instance;
+
+    /**
      * Send recovery email
      *
      * @param   string  $email
@@ -140,6 +147,21 @@ class Kohana_Password_Manager extends Service_Manager {
     {
         // Delete outdated password recovery links
         ORM::factory('Password_Recovery_Link')->garbage_collector(time());
+    }
+
+    /**
+     * Create a singleton instance of the class
+     *
+     * @return	Password_Manager
+     */
+    public static function instance()
+    {
+        if ( ! Password_Manager::$_instance instanceof Password_Manager)
+        {
+            Password_Manager::$_instance = new Password_Manager();
+        }
+
+        return Password_Manager::$_instance;
     }
 }
 
