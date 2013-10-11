@@ -11,6 +11,13 @@
 class Kohana_User_Manager extends Service_Manager {
 
     /**
+     * Singleton instance
+     *
+     * @var User_Manager    Singleton instance of the User Manager
+     */
+    protected static $_instance;
+
+    /**
      * Sign up a new user
      *
      * @param   array   $values
@@ -217,6 +224,21 @@ class Kohana_User_Manager extends Service_Manager {
     {
         // Delete outdated cookies
         ORM::factory('User_Cookie')->garbage_collector(time());
+    }
+
+    /**
+     * Create a singleton instance of the class
+     *
+     * @return	User_Manager
+     */
+    public static function instance()
+    {
+        if ( ! User_Manager::$_instance instanceof User_Manager)
+        {
+            User_Manager::$_instance = new User_Manager();
+        }
+
+        return User_Manager::$_instance;
     }
 }
 
