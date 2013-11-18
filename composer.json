@@ -1,0 +1,28 @@
+{
+	"name":        "app-skeleton/auth",
+	"type":        "kohana-module",
+	"description": "Authentication module for Kohana",
+	"homepage":    "https://github.com/app-skeleton/auth",
+	"license":     "BSD-3-Clause",
+	"keywords":    ["kohana", "framework", "auth"],
+	"authors": [
+		{
+			"name":     "Pap Tamas",
+			"email":    "paptamas@gmail.com",
+			"homepage": "https://github.com/paptamas",
+			"role":     "developer"
+		}
+	],
+	"support": {
+		"issues":   "https://github.com/app-skeleton/auth/issues"
+	},
+	"require": {
+		"composer/installers": 	"~1.0",
+		"php":                 	">=5.3.3"
+	},
+	"extra": {
+		"branch-alias": {
+			"dev-3.3/develop": "3.3.x-dev"
+		}
+	}
+}
